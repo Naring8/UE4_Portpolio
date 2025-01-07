@@ -25,4 +25,12 @@ private:
 
 private:
 	void TraceForward();
+	void CheckObstacleHeight(FHitResult HitResult);
+	void CheckObstacleThickness();
+
+private:
+	UPROPERTY()
+		TWeakObjectPtr<AActor> Owner;
+
+	TArray<AActor*> ActorsToIgnore;
 };
