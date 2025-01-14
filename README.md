@@ -9,3 +9,6 @@
 	- `void BeginPakour()`
 	- `void TraceCenter()`
 	- `void CheckObstacleHeight(FHitResult)`
+
+25.01.13
+- `void CheckObstacleThickness(FHitResult HitResult)`
