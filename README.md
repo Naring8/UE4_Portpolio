@@ -11,4 +11,9 @@
 	- `void CheckObstacleHeight(FHitResult)`
 
 25.01.13
-- `void CheckObstacleThickness(FHitResult HitResult)`
+	- `void CheckObstacleThickness(FHitResult HitResult)`
+
+25.01.14
+	- `void Jumping()`
+	- `void Vaulting()`
+- Create CharacterMovementInterface
