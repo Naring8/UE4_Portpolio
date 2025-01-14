@@ -91,36 +91,71 @@ void UParkourComponent::CheckObstacleThickness(FHitResult HitResult)
 	Height = HitResult.ImpactPoint.Z -
 		(Owner.Get()->GetActorLocation().Z - OwnerCapsuleHalfHeight);
 
-	GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Yellow,
-		FString::Printf(TEXT("Height: %f"), Height));
+	// Print On Screen
+	/*GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Yellow,
+		FString::Printf(TEXT("Height: %f"), Height));*/
 
 	FVector End = SideLocation - (UKismetMathLibrary::MakeRotFromX(SideNormal).Quaternion().GetForwardVector() * (60.0f));
 	FVector Start = UpTrace + End;
 
 	FHitResult temp;
-	if (UKismetSystemLibrary::LineTraceSingle(
+	if (UKismetSystemLibrary::LineTraceSingle (
 		this, Start, End,
 		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_EngineTraceChannel1), //ETraceTypeQuery::TraceTypeQuery1
 		false, ActorsToIgnore,
 		EDrawDebugTrace::ForDuration,
 		temp,
-		true, FLinearColor::Red))
-	{
+		true, FLinearColor::Red
+	))
 		WallClimbingTest();
-	}
 	else
-	{
-
-	}
+		Vaulting();
 }
 
 void UParkourComponent::WallClimbingTest()
 {
-	/*FVector Start = SidePlace + FVector({ 0.0f, 0.0f }, OwnerCapsuleHalfHeight);
-	if(UKismetSystemLibrary::SphereTraceSingle (
+	FVector AddHalfHeight = FVector(SidePlace.X, SidePlace.Y, SidePlace.Z + OwnerCapsuleHalfHeight);
+	const float QuarterHeight = OwnerCapsuleHalfHeight * 0.5f;
 
-	
-	
-	))*/
+	FVector Start = FVector(AddHalfHeight.X, AddHalfHeight.Y, AddHalfHeight.Z + QuarterHeight);
+	FVector End = FVector(AddHalfHeight.X, AddHalfHeight.Y, AddHalfHeight.Z - QuarterHeight);
+
+	FHitResult Temp;
+	if (UKismetSystemLibrary::SphereTraceSingle(
+		this, Start, End,
+		OwnerCapsuleRadius,
+		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_EngineTraceChannel1), //ETraceTypeQuery::TraceTypeQuery1
+		false, ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		Temp,
+		true, FLinearColor::White
+	))
+		HasSide = false;
+	else
+		Jumping();
+}
+
+void UParkourComponent::Jumping()
+{
+	if ((Height >= 40) && (UKismetMathLibrary::InRange_FloatFloat(Rotation, 140.0f, 220.0f)))
+	{
+		//switch (Height)
+		//{
+
+		//default:
+		//	break;
+		//}()
+		//	// TODO: Change Jump Montage depends on Height
+	}
+}
+
+void UParkourComponent::Vaulting()
+{
+	if (UKismetMathLibrary::InRange_FloatFloat(Height, 100.0f, 200.0f))
+	{
+		// TODO: Play Montage
+	}
+	else
+		WallClimbingTest();
 }
 

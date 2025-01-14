@@ -13,6 +13,8 @@ public:
 	void NativeUpdateAnimation(float const DeltaSeconds) override;
 
 private:
+
+private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
 		float Direction;
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))

@@ -24,10 +24,15 @@ private:
 		void BeginParkour(const float CapsuleHalfHeight, const float CapsuleRadius);
 
 private:
+#pragma region TraceSide
 	void TraceForward();
 	void CheckObstacleHeight(FHitResult HitResult);
 	void CheckObstacleThickness(FHitResult HitResult);
 	void WallClimbingTest();
+	void Jumping();
+	void Vaulting();
+#pragma endregion
+
 
 private:
 	UPROPERTY()
@@ -48,4 +53,6 @@ private:
 
 	FVector SidePlace;
 	float Height;
+
+	bool HasSide;
 };

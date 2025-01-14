@@ -17,6 +17,5 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float const DeltaSeconds)
 		Yaw = PawnOwner->GetBaseAimRotation().Yaw;
 
 		auto* const Character = Cast<ACharacter>(PawnOwner);
-
 	}
 }
