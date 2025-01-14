@@ -2,6 +2,7 @@
 #include <GameFramework/CharacterMovementComponent.h>
 #include <GameFramework/SpringArmComponent.h>
 #include <Camera/CameraComponent.h>
+#include <Components/CapsuleComponent.h>
 
 // Sets default values
 ABaseCharacter::ABaseCharacter()
@@ -27,8 +28,13 @@ ABaseCharacter::ABaseCharacter()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false; // 카메라가 캐릭터의 회전을 무시하도록 설정
 
+	// (Capsule, Forward Vector)에 맞도록 Mesh 위치, 회전 변경
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f).Quaternion());
+
+	// TODO: Change Capulse Size depends on CharacterState
+	GetCapsuleComponent()->SetCapsuleHalfHeight(95.0f);
+	GetCapsuleComponent()->SetCapsuleRadius(35.0f);
 }
 
 void ABaseCharacter::OnConstruction(FTransform const& Transform)
