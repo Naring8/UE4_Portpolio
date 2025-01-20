@@ -2,7 +2,21 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include <Engine/DataTable.h> // To Use DateTable in Blueprint
 #include "ParkourComponent.generated.h"
+
+USTRUCT(Atomic, BlueprintType)
+struct FParkourData : public FTableRowBase // inheritance is essencial to use "DataTable" in [Blueprint]
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere) class UAnimMontage* Montage;
+	UPROPERTY(EditAnywhere) float PlayRate = 1.0f;
+	UPROPERTY(EditAnywhere) FName Section;
+	UPROPERTY(EditAnywhere) float DistMin;
+	UPROPERTY(EditAnywhere) float DistMax;
+	UPROPERTY(EditAnywhere) FVector Extent;
+};
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
