@@ -12,10 +12,8 @@ struct FParkourData : public FTableRowBase // inheritance is essencial to use "D
 
 	UPROPERTY(EditAnywhere) class UAnimMontage* Montage;
 	UPROPERTY(EditAnywhere) float PlayRate = 1.0f;
-	UPROPERTY(EditAnywhere) FName Section;
 	UPROPERTY(EditAnywhere) float DistMin;
 	UPROPERTY(EditAnywhere) float DistMax;
-	UPROPERTY(EditAnywhere) FVector Extent;
 };
 
 
@@ -45,13 +43,15 @@ private:
 	void WallClimbingTest();
 	void Jumping();
 	void Vaulting();
+	FParkourData const* FindData() const;
 #pragma endregion
 
+private:
+	UPROPERTY(EditAnywhere)
+		class UDataTable* ParkourDataTable;
 
 private:
-	UPROPERTY()
-		TWeakObjectPtr<class AActor> Owner;
-
+	class AActor* Owner;
 	TArray<AActor*> ActorsToIgnore;
 
 private:

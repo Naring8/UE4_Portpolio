@@ -14,7 +14,28 @@ void UParkourComponent::BeginPlay()
 	Super::BeginPlay();
 
 	Owner = GetOwner();
-	ActorsToIgnore.Add(GetOwner()); // Owner를 무시하도록 추가
+	ActorsToIgnore.Add(Owner); // Owner를 무시하도록 추가
+
+	//if (IsValid(ParkourDataTable))
+	//{
+	//	TArray<FParkourData const*> Rows;
+
+	//	ParkourDataTable->GetAllRows("", Rows);	// "" 안에 들어간 내용이 들어간 문자열만 받아옴 / "" << 아무것도 없기 때문에 모두 가져옴
+
+	//	if (Rows.Num() > 0)
+	//	{
+	//		for (int32 Key = 0; Key < int32(EParkourType::Max); Key++) // TODO: 
+	//		{
+	//			TArray<FParkourData> Values;
+
+	//			for (auto& Row : Rows)
+	//				if (Key == Row->Type)
+	//					Values.Add(*Row);
+
+	//			DataMap.Add(EParkourType(Key), Values);
+	//		}
+	//	}
+	//}
 }
 
 
@@ -26,7 +47,7 @@ void UParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 void UParkourComponent::BeginParkour(const float CapsuleHalfHeight, const float CapsuleRadius)
 {
-	if (Owner.IsValid())
+	if (IsValid(Owner))
 	{
 		OwnerCapsuleHalfHeight = CapsuleHalfHeight;
 		OwnerCapsuleRadius = CapsuleRadius;
@@ -64,7 +85,7 @@ void UParkourComponent::CheckObstacleHeight(FHitResult HitResult)
 	Rotation = UKismetMathLibrary::DegAcos(
 		UKismetMathLibrary::Dot_VectorVector(
 			UKismetMathLibrary::MakeRotFromX(SideNormal).Quaternion().GetForwardVector().GetSafeNormal(0.0001),
-			Owner.Get()->GetActorForwardVector().GetSafeNormal(0.0001)));
+			Owner->GetActorForwardVector().GetSafeNormal(0.0001)));
 
 	// FVector UpTrace = { 0.0f, 0.0f, 600.0f };
 
@@ -89,7 +110,7 @@ void UParkourComponent::CheckObstacleThickness(FHitResult HitResult)
 {
 	SidePlace = HitResult.Location;
 	Height = HitResult.ImpactPoint.Z -
-		(Owner.Get()->GetActorLocation().Z - OwnerCapsuleHalfHeight);
+		(Owner->GetActorLocation().Z - OwnerCapsuleHalfHeight);
 
 	// Print On Screen
 	/*GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Yellow,
@@ -151,11 +172,49 @@ void UParkourComponent::Jumping()
 
 void UParkourComponent::Vaulting()
 {
-	if (UKismetMathLibrary::InRange_FloatFloat(Height, 100.0f, 200.0f))
+	
+
+	if (IsValid(ParkourDataTable))
 	{
-		// TODO: Play Montage
+		if (UKismetMathLibrary::InRange_FloatFloat(Height, 100.0f, 200.0f))
+		{
+			// TODO: Play Montage
+
+		}
+		else
+			WallClimbingTest();
 	}
-	else
-		WallClimbingTest();
+
+}
+
+FParkourData const* UParkourComponent::FindData() const
+{
+	auto const& DataArray = DataMap[Type];
+
+	for (auto const& data : ParkourDataTable.)
+	{
+
+	}
+	UKismetMathLibrary::InRange_FloatFloat()
+
+	for (int32 i = 0; i < DataArray.Num(); i++)
+	{
+		if (DataArray[i].DistMin <= HitDistance && HitDistance <= DataArray[i].DistMax)
+		{
+			bool bResult = true;
+
+			for (int32 j = 0; j < 3; j++)
+			{
+				if (DataArray[i].Extent[j] == 0.0f)
+					continue;
+
+				bResult &= FMath::IsNearlyEqual(DataArray[i].Extent[j], HitObstacleExtent[j], 10);
+			}
+
+			if (bResult == true)
+				return &DataArray[i];
+		}
+	}
+	return nullptr;
 }
 
