@@ -20,3 +20,6 @@
 
 25.01.20
 - Make Custom Struct(*FParkourData*) in `ParkourComponent.h` 
+
+25.01.22
+- Using DataTable(made by Blueprint) to play montage
