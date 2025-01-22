@@ -9,6 +9,7 @@ UParkourComponent::UParkourComponent()
 	UpTrace = { 0.0f, 0.0f, 600.0f };
 }
 
+#include "UObject/ConstructorHelpers.h"
 void UParkourComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -120,7 +121,7 @@ void UParkourComponent::CheckObstacleThickness(FHitResult HitResult)
 	FVector Start = UpTrace + End;
 
 	FHitResult temp;
-	if (UKismetSystemLibrary::LineTraceSingle (
+	if (UKismetSystemLibrary::LineTraceSingle(
 		this, Start, End,
 		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_EngineTraceChannel1), //ETraceTypeQuery::TraceTypeQuery1
 		false, ActorsToIgnore,
@@ -170,16 +171,20 @@ void UParkourComponent::Jumping()
 	}
 }
 
+#include <GameFramework/Character.h>
+#include <GameFramework/CharacterMovementComponent.h>
 void UParkourComponent::Vaulting()
 {
-	
-
 	if (IsValid(ParkourDataTable))
 	{
-		if (UKismetMathLibrary::InRange_FloatFloat(Height, 100.0f, 200.0f))
+		if (FParkourData const* Temp = FindData())
 		{
-			// TODO: Play Montage
-
+			if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
+			{
+				//OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+				OwnerCharacter->PlayAnimMontage(Temp->Montage, Temp->PlayRate);
+			}
+			
 		}
 		else
 			WallClimbingTest();
@@ -189,32 +194,17 @@ void UParkourComponent::Vaulting()
 
 FParkourData const* UParkourComponent::FindData() const
 {
-	auto const& DataArray = DataMap[Type];
-
-	for (auto const& data : ParkourDataTable.)
+	if (IsValid(ParkourDataTable))
 	{
+		TArray<FParkourData const*> PArray;
+		ParkourDataTable->GetAllRows("", PArray);
 
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Valid"));
+		for (auto const& data : PArray)
+			if (UKismetMathLibrary::InRange_FloatFloat(Height, data->DistMin, data->DistMax, true, false))
+				return data;
 	}
-	UKismetMathLibrary::InRange_FloatFloat()
 
-	for (int32 i = 0; i < DataArray.Num(); i++)
-	{
-		if (DataArray[i].DistMin <= HitDistance && HitDistance <= DataArray[i].DistMax)
-		{
-			bool bResult = true;
-
-			for (int32 j = 0; j < 3; j++)
-			{
-				if (DataArray[i].Extent[j] == 0.0f)
-					continue;
-
-				bResult &= FMath::IsNearlyEqual(DataArray[i].Extent[j], HitObstacleExtent[j], 10);
-			}
-
-			if (bResult == true)
-				return &DataArray[i];
-		}
-	}
 	return nullptr;
 }
 
