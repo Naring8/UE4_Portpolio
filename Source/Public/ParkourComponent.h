@@ -44,10 +44,11 @@ private:
 	void Jumping();
 	void Vaulting();
 	FParkourData const* FindData() const;
+	void ResetValues();
 #pragma endregion
 
 private:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = "true"))
 		class UDataTable* ParkourDataTable;
 
 private:
@@ -57,6 +58,8 @@ private:
 private:
 	float OwnerCapsuleHalfHeight = 0.0f;
 	float OwnerCapsuleRadius = 0.0f;
+
+	FParkourData const* PlayableParkourData;
 
 private:
 	FVector SideLocation;
