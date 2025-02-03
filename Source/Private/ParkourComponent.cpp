@@ -149,23 +149,15 @@ void UParkourComponent::Vaulting()
 {
 	if (IsValid(ParkourDataTable))
 	{
-		if (FParkourData const* Temp = FindData())
-		{
-			if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
-			{
-				OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-				OwnerCharacter->PlayAnimMontage(Temp->Montage, Temp->PlayRate);
-				// TODO: It must be delegated ResetValues Function
-			}
-			
-		}
+		if (FindData())
+			PlayMontage();
 		else
 			WallClimbingTest();
 	}
 
 }
 
-FParkourData const* UParkourComponent::FindData() const
+bool UParkourComponent::FindData()
 {
 	if (IsValid(ParkourDataTable))
 	{
@@ -173,19 +165,66 @@ FParkourData const* UParkourComponent::FindData() const
 		ParkourDataTable->GetAllRows("", PDataArray);
 
 		for (auto const& PData : PDataArray)
+		{
 			if (UKismetMathLibrary::InRange_FloatFloat(Height, PData->DistMin, PData->DistMax, true, false))
-				return PData;
+			{
+				PlayableParkourData = PData;
+				return true;
+			}
+		}
 	}
 
-	return nullptr;
+	return false;
 }
 
-void UParkourComponent::ResetValues()
+#include <CharacterAnimInstance.h>
+#include <Components/CapsuleComponent.h>
+void UParkourComponent::PlayMontage()
+{
+	if (PlayableParkourData)
+	{
+		if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
+		{
+			IgnoreInput(true, false);
+			if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+				OwnerAnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::ResetValues);
+
+			OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+			OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
+		}
+	}
+}
+
+#include <../Basic/BasicPlayerController.h>
+void UParkourComponent::ResetValues(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 	{
+		PlayableParkourData = nullptr;
+		OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
+		if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+			if (OwnerAnimInstance && OwnerAnimInstance->OnMontageEnded.IsBound())
+				OwnerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UParkourComponent::ResetValues);
+
+		if (auto const& OwnerController = Cast<ABasicPlayerController>(OwnerCharacter->GetController()))
+			OwnerController->ResetIgnoreInputFlags();
 	}
 }
+
+void UParkourComponent::IgnoreInput(bool LookInput, bool MoveInput)
+{
+	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
+	{
+		if (auto const& OwnerController = Cast<ABasicPlayerController>(OwnerCharacter->GetController()))
+		{
+			OwnerController->SetIgnoreLookInput(LookInput);
+			OwnerController->SetIgnoreMoveInput(MoveInput);
+		}
+	}
+}
+
+
 

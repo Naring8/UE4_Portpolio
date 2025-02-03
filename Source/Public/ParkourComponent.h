@@ -5,13 +5,30 @@
 #include <Engine/DataTable.h> // To Use DateTable in Blueprint
 #include "ParkourComponent.generated.h"
 
+UENUM(BlueprintType)
+namespace EParkour
+{
+	enum Type
+	{
+		None,
+		Jump,
+		Vault,
+		Climb,
+		Fall,
+		Slide,
+		Max
+	};
+} typedef EParkour::Type EParkourType;
+
 USTRUCT(Atomic, BlueprintType)
 struct FParkourData : public FTableRowBase // inheritance is essencial to use "DataTable" in [Blueprint]
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere) TEnumAsByte<EParkour::Type> Type;
 	UPROPERTY(EditAnywhere) class UAnimMontage* Montage;
 	UPROPERTY(EditAnywhere) float PlayRate = 1.0f;
+	UPROPERTY(EditAnywhere) FName Section;
 	UPROPERTY(EditAnywhere) float DistMin;
 	UPROPERTY(EditAnywhere) float DistMax;
 };
@@ -43,9 +60,13 @@ private:
 	void WallClimbingTest();
 	void Jumping();
 	void Vaulting();
-	FParkourData const* FindData() const;
-	void ResetValues();
+
+	bool FindData();
+	void PlayMontage();
+	UFUNCTION()
+		void ResetValues(UAnimMontage* Montage, bool bInterrupted);
 #pragma endregion
+	void IgnoreInput(bool LookInput, bool MoveInput);
 
 private:
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = "true"))
@@ -53,7 +74,8 @@ private:
 
 private:
 	class AActor* Owner;
-	TArray<AActor*> ActorsToIgnore;
+	UPROPERTY()
+		TArray<class AActor*> ActorsToIgnore;
 
 private:
 	float OwnerCapsuleHalfHeight = 0.0f;

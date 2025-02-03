@@ -20,7 +20,7 @@ ABaseCharacter::ABaseCharacter()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bUsePawnControlRotation = true; // 카메라가 컨트롤러 회전을 따르도록 설정
-	SpringArm->bDoCollisionTest = false; // 충돌 테스트 비활성화
+	SpringArm->bDoCollisionTest = true; // 충돌 테스트 활성화
 	SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 80.0f));
 
 	// CameraComponent 생성 및 설정
