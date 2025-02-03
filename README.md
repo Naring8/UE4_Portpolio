@@ -28,5 +28,5 @@
 - Play Montage (1)
 
 25.02.03
-- // Using `OnMontageEnded.AddDynamic` Function in AnimInstance Class, the binded Function must be Reflectioned(`UFUNCTION`)
-- `AddDynamic` must be UObject (where the binding function located), UFUNCTION (the function Parameter type must be same with `AddDynamic(UAnimMontage* Montage, bool bInterrupted)` Func)
+- `AddDynamic` must be UObject (where the binding function located), `UFUNCTION`
+- The function Parameter type must be same with `AddDynamic(UAnimMontage* Montage, bool bInterrupted)` Func)
