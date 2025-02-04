@@ -1,8 +1,9 @@
 #include "BaseCharacter.h"
+#include <Components/CapsuleComponent.h>
 #include <GameFramework/CharacterMovementComponent.h>
+
 #include <GameFramework/SpringArmComponent.h>
 #include <Camera/CameraComponent.h>
-#include <Components/CapsuleComponent.h>
 
 // Sets default values
 ABaseCharacter::ABaseCharacter()
@@ -14,7 +15,10 @@ ABaseCharacter::ABaseCharacter()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
-	GetCharacterMovement()->JumpZVelocity = 500.0f;
+	// Jump Scale
+	GetCharacterMovement()->GravityScale = 2.0f;
+	GetCharacterMovement()->JumpZVelocity = 600.0f;
+	GetCharacterMovement()->AirControl = 0.2f;
 
 	// SpringArmComponent 생성 및 설정
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -32,7 +36,7 @@ ABaseCharacter::ABaseCharacter()
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f).Quaternion());
 
-	// TODO: Change Capulse Size depends on CharacterState
+	// NEEDS: Change Capulse Size depends on CharacterState
 	GetCapsuleComponent()->SetCapsuleHalfHeight(95.0f);
 	GetCapsuleComponent()->SetCapsuleRadius(35.0f);
 }

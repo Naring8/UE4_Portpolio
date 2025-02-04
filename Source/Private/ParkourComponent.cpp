@@ -17,8 +17,28 @@ void UParkourComponent::BeginPlay()
 	Owner = GetOwner();
 	ActorsToIgnore.Add(Owner); // Owner를 무시하도록 추가
 
-}
+	// Parkour Data Table => Data Map (STL)
+	if (IsValid(ParkourDataTable))
+	{
+		TArray<FParkourData const*> Rows;
 
+		ParkourDataTable->GetAllRows("", Rows);	// "" 안에 들어간 내용이 들어간 문자열만 받아옴 / "" << 아무것도 없기 때문에 모두 가져옴
+
+		if (Rows.Num() > 0)
+		{
+			for (int32 Key = 0; Key < int32(EParkourType::Max); Key++)
+			{
+				TArray<FParkourData> Values;
+
+				for (auto& Row : Rows)
+					if (Key == Row->Type)
+						Values.Add(*Row);
+
+				DataMap.Add(EParkourType(Key), Values);
+			}
+		}
+	}
+}
 
 void UParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -75,7 +95,7 @@ void UParkourComponent::CheckObstacleHeight(FHitResult HitResult)
 	FVector Start = UpTrace + End;
 
 	FHitResult ObstacleHitResult;
-	if (UKismetSystemLibrary::CapsuleTraceSingle (
+	if (UKismetSystemLibrary::CapsuleTraceSingle(
 		this, Start, End,
 		OwnerCapsuleRadius, OwnerCapsuleHalfHeight,
 		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_EngineTraceChannel1), //ETraceTypeQuery::TraceTypeQuery1
@@ -131,11 +151,20 @@ void UParkourComponent::WallClimbingTest()
 		false, ActorsToIgnore,
 		EDrawDebugTrace::ForDuration,
 		Temp,
-		true, FLinearColor::White
+		true, FLinearColor::Red
 	))
 		HasSide = false;
 	else
-		Jumping();
+		CheckWall();
+}
+
+void UParkourComponent::CheckWall()
+{
+	if (Height >= 40.0f && (140.0f <= Rotation && Rotation <= 220.0f))
+	{
+		PlayableParkourData = FindData(EParkourType::Jump);
+		PlayMontage();
+	}
 }
 
 void UParkourComponent::Jumping()
@@ -144,37 +173,31 @@ void UParkourComponent::Jumping()
 		OwnerCharacter->Jump();
 }
 
-
 void UParkourComponent::Vaulting()
 {
-	if (IsValid(ParkourDataTable))
-	{
-		if (FindData())
-			PlayMontage();
-		else
-			WallClimbingTest();
-	}
+	PlayableParkourData = FindData(EParkourType::Vault);
 
+	if (PlayableParkourData)
+		PlayMontage();
+	else
+		WallClimbingTest();
 }
 
-bool UParkourComponent::FindData()
+FParkourData const* UParkourComponent::FindData(EParkourType const Type) const
 {
-	if (IsValid(ParkourDataTable))
-	{
-		TArray<FParkourData const*> PDataArray;
-		ParkourDataTable->GetAllRows("", PDataArray);
+	if (DataMap.Contains(Type) == false)
+		return false;
 
-		for (auto const& PData : PDataArray)
-		{
-			if (UKismetMathLibrary::InRange_FloatFloat(Height, PData->DistMin, PData->DistMax, true, false))
-			{
-				PlayableParkourData = PData;
-				return true;
-			}
-		}
+	auto const& DataArray = DataMap[Type];
+
+	for (int32 i = 0; i < DataArray.Num(); i++)
+	{
+		// UKismetMathLibrary::InRange_FloatFloat(Height, PData->DistMin, PData->DistMax, true, false)
+		if (DataArray[i].DistMin <= Height && Height < DataArray[i].DistMax) // Simple Calc
+			return &DataArray[i];
 	}
 
-	return false;
+	return nullptr;
 }
 
 #include <CharacterAnimInstance.h>
@@ -190,7 +213,7 @@ void UParkourComponent::PlayMontage()
 				OwnerAnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::ResetValues);
 
 			OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-			OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			//OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
 		}
 	}
@@ -202,7 +225,7 @@ void UParkourComponent::ResetValues(UAnimMontage* Montage, bool bInterrupted)
 	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 	{
 		PlayableParkourData = nullptr;
-		OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		//OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
 		if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))

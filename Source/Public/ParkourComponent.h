@@ -58,10 +58,11 @@ private:
 	void CheckObstacleHeight(FHitResult HitResult);
 	void CheckObstacleThickness(FHitResult HitResult);
 	void WallClimbingTest();
+	void CheckWall();
 	void Jumping();
 	void Vaulting();
 
-	bool FindData();
+	FParkourData const* FindData(EParkourType const Type) const;
 	void PlayMontage();
 	UFUNCTION()
 		void ResetValues(UAnimMontage* Montage, bool bInterrupted);
@@ -71,6 +72,7 @@ private:
 private:
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = "true"))
 		class UDataTable* ParkourDataTable;
+	TMap<EParkourType, TArray<FParkourData>> DataMap;
 
 private:
 	class AActor* Owner;
