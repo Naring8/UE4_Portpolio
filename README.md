@@ -30,3 +30,8 @@
 25.02.03
 - `AddDynamic` must be UObject (where the binding function located), `UFUNCTION`
 - The function Parameter type must be same with `AddDynamic(UAnimMontage* Montage, bool bInterrupted)` Func)
+
+25.02.04
+- Set DataTable Values to Map(STL) when `BeginPlay`
+- Amend Code of `WallClimbingTest` & `FindData`
+- Change `JumpVelocity` & `Gravity` & `AirControl` Scale
