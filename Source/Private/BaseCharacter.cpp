@@ -68,3 +68,13 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
+void ABaseCharacter::CustomCrouch()
+{
+	Crouch();
+}
+
+void ABaseCharacter::CustomWalk()
+{
+	
+}
+

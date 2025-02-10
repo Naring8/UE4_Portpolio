@@ -160,11 +160,16 @@ void UParkourComponent::WallClimbingTest()
 
 void UParkourComponent::CheckWall()
 {
-	if (Height >= 40.0f && (140.0f <= Rotation && Rotation <= 220.0f))
+	if ((Height > 40.0f) && (140.0f <= Rotation && Rotation <= 220.0f))
 	{
 		PlayableParkourData = FindData(EParkourType::Jump);
-		PlayMontage();
+		if (PlayableParkourData)
+			PlayMontage();
+		else
+			BracedDrop();
 	}
+	else
+		Jumping();
 }
 
 void UParkourComponent::Jumping()
@@ -200,6 +205,14 @@ FParkourData const* UParkourComponent::FindData(EParkourType const Type) const
 	return nullptr;
 }
 
+void UParkourComponent::BracedDrop()
+{
+	PlayableParkourData = FindData(EParkourType::Climb);
+
+	if (PlayableParkourData)
+		PlayMontage();
+}
+
 #include <CharacterAnimInstance.h>
 #include <Components/CapsuleComponent.h>
 void UParkourComponent::PlayMontage()
@@ -213,7 +226,8 @@ void UParkourComponent::PlayMontage()
 				OwnerAnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::ResetValues);
 
 			OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-			//OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			// Set Capsule Radius
+			//OwnerCharacter->GetCapsuleComponent()->SetCapsuleRadius(25.0f);
 			OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
 		}
 	}
@@ -225,7 +239,8 @@ void UParkourComponent::ResetValues(UAnimMontage* Montage, bool bInterrupted)
 	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 	{
 		PlayableParkourData = nullptr;
-		//OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		// Set Default
+		//OwnerCharacter->GetCapsuleComponent()->SetCapsuleRadius(35.0f);
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
 		if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))

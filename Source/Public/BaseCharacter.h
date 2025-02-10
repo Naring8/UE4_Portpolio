@@ -25,10 +25,21 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
+	UFUNCTION(BlueprintCallable)
+		void CustomCrouch();
+
+	UFUNCTION(BlueprintCallable)
+		void CustomWalk();
+
+private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		class USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		class UCameraComponent* Camera;
+
+private:
+	float walkSpeed = 300.0f;
+	float runSpeed = 600.0f;
 
 };

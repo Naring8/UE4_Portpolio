@@ -61,6 +61,7 @@ private:
 	void CheckWall();
 	void Jumping();
 	void Vaulting();
+	void BracedDrop();
 
 	FParkourData const* FindData(EParkourType const Type) const;
 	void PlayMontage();
