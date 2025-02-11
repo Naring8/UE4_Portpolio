@@ -50,24 +50,30 @@ public:
 
 private:
 	UFUNCTION(BlueprintCallable)
-		void BeginParkour(const float CapsuleHalfHeight, const float CapsuleRadius);
+		void BeginParkour();
 
 private:
 #pragma region TraceSide
 	void TraceForward();
 	void CheckObstacleHeight(FHitResult HitResult);
 	void CheckObstacleThickness(FHitResult HitResult);
+#pragma endregion
+
+#pragma region ParkourActing
 	void WallClimbingTest();
 	void CheckWall();
 	void Jumping();
 	void Vaulting();
 	void BracedDrop();
+#pragma endregion
 
+private:
 	FParkourData const* FindData(EParkourType const Type) const;
 	void PlayMontage();
+
 	UFUNCTION()
 		void ResetValues(UAnimMontage* Montage, bool bInterrupted);
-#pragma endregion
+
 	void IgnoreInput(bool LookInput, bool MoveInput);
 
 private:
@@ -97,4 +103,10 @@ private:
 	float Height;
 
 	bool HasSide;
+
+private:
+	mutable float ObstacleGap;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* WallClimb;
 };

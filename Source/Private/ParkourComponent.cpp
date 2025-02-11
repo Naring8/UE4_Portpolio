@@ -1,7 +1,6 @@
 #include "ParkourComponent.h"
 #include <GameFramework/Character.h>
 #include <GameFramework/CharacterMovementComponent.h>
-#include "Animation/AnimInstance.h"
 
 UParkourComponent::UParkourComponent()
 {
@@ -46,12 +45,14 @@ void UParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 }
 
-void UParkourComponent::BeginParkour(const float CapsuleHalfHeight, const float CapsuleRadius)
+#include <CharacterAnimInstance.h>
+#include <Components/CapsuleComponent.h>
+void UParkourComponent::BeginParkour()
 {
-	if (IsValid(Owner)) // Is Owner Valid
+	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner)) // Is Owner Valid
 	{
-		OwnerCapsuleHalfHeight = CapsuleHalfHeight;
-		OwnerCapsuleRadius = CapsuleRadius;
+		OwnerCapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+		OwnerCapsuleRadius = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
 
 		TraceForward();
 	}
@@ -164,7 +165,47 @@ void UParkourComponent::CheckWall()
 	{
 		PlayableParkourData = FindData(EParkourType::Jump);
 		if (PlayableParkourData)
-			PlayMontage();
+		{
+			float delayTime = ObstacleGap / 400.0f;
+			if ((delayTime > 0.0f) && (Height > 200.0f))
+			{
+				FTimerHandle TimerHandle;
+
+				//타이머 설정 (delayTime 초 후 한번 실행)
+				GetWorld()->GetTimerManager().SetTimer
+				(
+					TimerHandle,                                // 핸들
+					this,                                       // 대상 객체
+					&ThisClass::PlayMontage,
+					delayTime,                                  // 반복 주기(초)
+					false,                                      // 반복 여부
+					delayTime                                   // 초기 지연 시간
+				);
+
+				if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
+				{
+					OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+
+					FVector MoveLocation = (SidePlace - FVector(0.0f, 0.0f, 200.0f)) + (OwnerCharacter->GetActorForwardVector() * (-40.0f));
+					//FVector MoveLocation = (SidePlace - FVector(0.0f, 0.0f, 200.0f));
+
+					FLatentActionInfo LatentInfo; // Completed
+
+					// TODO: Need More Implement (do not arrive at delayTime)
+					UKismetSystemLibrary::MoveComponentTo(OwnerCharacter->GetCapsuleComponent(),
+						MoveLocation,
+						OwnerCharacter->GetActorRotation(),
+						false,
+						false,
+						delayTime,
+						false,
+						EMoveComponentAction::Move,
+						LatentInfo);
+
+					OwnerCharacter->PlayAnimMontage(WallClimb, 1.0f);	
+				}
+			}
+		}
 		else
 			BracedDrop();
 	}
@@ -199,7 +240,10 @@ FParkourData const* UParkourComponent::FindData(EParkourType const Type) const
 	{
 		// UKismetMathLibrary::InRange_FloatFloat(Height, PData->DistMin, PData->DistMax, true, false)
 		if (DataArray[i].DistMin <= Height && Height < DataArray[i].DistMax) // Simple Calc
+		{
+			ObstacleGap = Height - 200.0f;
 			return &DataArray[i];
+		}
 	}
 
 	return nullptr;
@@ -213,21 +257,18 @@ void UParkourComponent::BracedDrop()
 		PlayMontage();
 }
 
-#include <CharacterAnimInstance.h>
-#include <Components/CapsuleComponent.h>
 void UParkourComponent::PlayMontage()
 {
 	if (PlayableParkourData)
 	{
 		if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 		{
+			OwnerCharacter->GetCharacterMovement()->StopMovementImmediately();
 			IgnoreInput(true, false);
 			if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
 				OwnerAnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::ResetValues);
 
 			OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-			// Set Capsule Radius
-			//OwnerCharacter->GetCapsuleComponent()->SetCapsuleRadius(25.0f);
 			OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
 		}
 	}
@@ -239,8 +280,7 @@ void UParkourComponent::ResetValues(UAnimMontage* Montage, bool bInterrupted)
 	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 	{
 		PlayableParkourData = nullptr;
-		// Set Default
-		//OwnerCharacter->GetCapsuleComponent()->SetCapsuleRadius(35.0f);
+		ObstacleGap = 0.0f;
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
 		if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
