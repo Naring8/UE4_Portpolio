@@ -17,4 +17,7 @@ class UE4_PORTPOLIO_API ICharacterMovementInterface
 public:
 	virtual void LeftFoot() PURE_VIRTUAL(ICharacterMovementInterface::LeftFoot)
 	virtual void RightFoot() PURE_VIRTUAL(ICharacterMovementInterface::RightFoot)
+
+	virtual void CustomJump(bool IsJump) PURE_VIRTUAL(ICharacterMovementInterface::CustomJump)
+	virtual void WallRunUp(bool WallUp) PURE_VIRTUAL(ICharacterMovementInterface::WallRunUp)
 };

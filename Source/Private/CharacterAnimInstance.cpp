@@ -16,6 +16,7 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float const DeltaSeconds)
 		Pitch = PawnOwner->GetBaseAimRotation().Pitch;
 		Yaw = PawnOwner->GetBaseAimRotation().Yaw;
 
-		auto* const Character = Cast<ACharacter>(PawnOwner);
+		// Is In Air?
+		bIsJump = PawnOwner->GetMovementComponent()->IsFalling();
 	}
 }

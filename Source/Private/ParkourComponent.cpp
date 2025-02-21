@@ -159,6 +159,7 @@ void UParkourComponent::WallClimbingTest()
 		CheckWall();
 }
 
+#include <../Interfaces/CharacterMovementInterface.h>
 void UParkourComponent::CheckWall()
 {
 	if ((Height > 40.0f) && (140.0f <= Rotation && Rotation <= 220.0f))
@@ -167,31 +168,40 @@ void UParkourComponent::CheckWall()
 		if (PlayableParkourData)
 		{
 			float delayTime = ObstacleGap / 400.0f;
-			if ((delayTime > 0.0f) && (Height > 200.0f))
+			if ((delayTime > 0.0f) && Height > 210.0f)
 			{
-				FTimerHandle TimerHandle;
-
-				//타이머 설정 (delayTime 초 후 한번 실행)
-				GetWorld()->GetTimerManager().SetTimer
-				(
-					TimerHandle,                                // 핸들
-					this,                                       // 대상 객체
-					&ThisClass::PlayMontage,
-					delayTime,                                  // 반복 주기(초)
-					false,                                      // 반복 여부
-					delayTime                                   // 초기 지연 시간
-				);
-
 				if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 				{
 					OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 
 					FVector MoveLocation = (SidePlace - FVector(0.0f, 0.0f, 200.0f)) + (OwnerCharacter->GetActorForwardVector() * (-40.0f));
-					//FVector MoveLocation = (SidePlace - FVector(0.0f, 0.0f, 200.0f));
 
-					FLatentActionInfo LatentInfo; // Completed
+					// Print Target Location
+					/*if (GEngine)
+						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Location: %f, %f, %f"),
+							MoveLocation.X, MoveLocation.Y, MoveLocation.Z));*/
 
-					// TODO: Need More Implement (do not arrive at delayTime)
+					if (Height < 210.0f)
+					{
+						if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+						{
+							// OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate);
+							CustomCharacterMovement->CustomJump(true);
+						}
+					}
+					else
+					{
+						if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+						{
+							// OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate);
+							CustomCharacterMovement->WallRunUp(true);
+						}
+					}
+
+					FLatentActionInfo LatentInfo;
+					LatentInfo.CallbackTarget = this;
+
+					// TODO: Need More Implement (do not arrive at delayTime and TargetLocation)
 					UKismetSystemLibrary::MoveComponentTo(OwnerCharacter->GetCapsuleComponent(),
 						MoveLocation,
 						OwnerCharacter->GetActorRotation(),
@@ -202,9 +212,19 @@ void UParkourComponent::CheckWall()
 						EMoveComponentAction::Move,
 						LatentInfo);
 
-					OwnerCharacter->PlayAnimMontage(WallClimb, 1.0f);	
+					//타이머 설정 (delayTime 초 후 한번 실행)
+					GetWorld()->GetTimerManager().SetTimer
+					(
+						TimerHandle,                                // 핸들
+						this,                                       // 대상 객체
+						&ThisClass::PlayMontage,
+						delayTime,                                  // 반복 주기(초)
+						false                                      // 반복 여부
+					);
 				}
 			}
+			else
+				ThisClass::PlayMontage();
 		}
 		else
 			BracedDrop();
@@ -263,6 +283,9 @@ void UParkourComponent::PlayMontage()
 	{
 		if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 		{
+			if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+				CustomCharacterMovement->WallRunUp(false);
+
 			OwnerCharacter->GetCharacterMovement()->StopMovementImmediately();
 			IgnoreInput(true, false);
 			if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))

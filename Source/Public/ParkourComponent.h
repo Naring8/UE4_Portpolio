@@ -107,6 +107,6 @@ private:
 private:
 	mutable float ObstacleGap;
 
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-		class UAnimMontage* WallClimb;
+private:
+	FTimerHandle TimerHandle;
 };
