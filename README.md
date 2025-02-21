@@ -35,3 +35,17 @@
 - Set DataTable Values to Map(STL) when `BeginPlay`
 - Amend Code of `WallClimbingTest` & `FindData`
 - Change `JumpVelocity` & `Gravity` & `AirControl` Scale
+
+25.02.21
+1. Play Animation Sequence $\rightarrow$ Play Animation Montage
+	- this method won't operate well because of 'Sequence' and 'Montage' difference
+2. Play Animation Montage and use "Montage_JumpToSection" in Parkour code
+	 - It move more than Obstascle so I think it must adjust the 'TargetLocation'
+	 - or adjust the Animation Montage to move a tiny value of Location
+3. Set New State in AnimationInstance and access by Interface $\rightarrow$ Play Montage in Parkour Code
+
+"MoveComponentTo" does not work well, but it worked when add a code below
+```C++
+FLatentActionInfo LatentInfo;
+LatentInfo.CallbackTarget = this; // this is necessary
+```
