@@ -106,7 +106,4 @@ private:
 
 private:
 	mutable float ObstacleGap;
-
-private:
-	FTimerHandle TimerHandle;
 };

@@ -168,40 +168,20 @@ void UParkourComponent::CheckWall()
 		if (PlayableParkourData)
 		{
 			float delayTime = ObstacleGap / 400.0f;
-			if ((delayTime > 0.0f) && Height > 210.0f)
+			if ((delayTime > 0.0f) && Height > (PlayableParkourData->DistMin + 80))
 			{
 				if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 				{
 					OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 
-					FVector MoveLocation = (SidePlace - FVector(0.0f, 0.0f, 200.0f)) + (OwnerCharacter->GetActorForwardVector() * (-40.0f));
+					FVector MoveLocation = (SidePlace - FVector(0.0f, 0.0f, PlayableParkourData->DistMin)) + (OwnerCharacter->GetActorForwardVector() * (-40.0f));
 
-					// Print Target Location
-					/*if (GEngine)
-						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Location: %f, %f, %f"),
-							MoveLocation.X, MoveLocation.Y, MoveLocation.Z));*/
-
-					if (Height < 210.0f)
-					{
-						if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
-						{
-							// OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate);
-							CustomCharacterMovement->CustomJump(true);
-						}
-					}
-					else
-					{
-						if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
-						{
-							// OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate);
-							CustomCharacterMovement->WallRunUp(true);
-						}
-					}
+					if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+						CustomCharacterMovement->WallRunUp(true);
 
 					FLatentActionInfo LatentInfo;
 					LatentInfo.CallbackTarget = this;
 
-					// TODO: Need More Implement (do not arrive at delayTime and TargetLocation)
 					UKismetSystemLibrary::MoveComponentTo(OwnerCharacter->GetCapsuleComponent(),
 						MoveLocation,
 						OwnerCharacter->GetActorRotation(),
@@ -212,7 +192,7 @@ void UParkourComponent::CheckWall()
 						EMoveComponentAction::Move,
 						LatentInfo);
 
-					//타이머 설정 (delayTime 초 후 한번 실행)
+					FTimerHandle TimerHandle;
 					GetWorld()->GetTimerManager().SetTimer
 					(
 						TimerHandle,                                // 핸들
@@ -224,7 +204,7 @@ void UParkourComponent::CheckWall()
 				}
 			}
 			else
-				ThisClass::PlayMontage();
+				PlayMontage();
 		}
 		else
 			BracedDrop();
@@ -287,12 +267,14 @@ void UParkourComponent::PlayMontage()
 				CustomCharacterMovement->WallRunUp(false);
 
 			OwnerCharacter->GetCharacterMovement()->StopMovementImmediately();
+			OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 			IgnoreInput(true, false);
+
 			if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
 				OwnerAnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::ResetValues);
 
-			OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 			OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
+
 		}
 	}
 }
@@ -307,7 +289,7 @@ void UParkourComponent::ResetValues(UAnimMontage* Montage, bool bInterrupted)
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
 		if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
-			if (OwnerAnimInstance && OwnerAnimInstance->OnMontageEnded.IsBound())
+			if (OwnerAnimInstance->OnMontageEnded.IsBound())
 				OwnerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UParkourComponent::ResetValues);
 
 		if (auto const& OwnerController = Cast<ABasicPlayerController>(OwnerCharacter->GetController()))
