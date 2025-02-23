@@ -49,3 +49,9 @@
 FLatentActionInfo LatentInfo;
 LatentInfo.CallbackTarget = this; // this is necessary
 ```
+
+25.02.22
+I wanted to make code(Parkour Component) independently (because it is Component which can use anywhere when add in blueprint), but when i tried to write a code only in "Parkour", Error of unknown cause happened(when the first montage completely played and the second montage playing, the player go up more(z location get increased and decreased).
+
+So I choose the 3rd method to get rid of error
+3. Set New State in AnimationInstance and access by Interface $\rightarrow$ Play Montage in Parkour Code
