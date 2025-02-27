@@ -25,8 +25,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	UFUNCTION(BlueprintCallable)
-		void CustomCrouch();
 
 	UFUNCTION(BlueprintCallable)
 		void CustomWalk();

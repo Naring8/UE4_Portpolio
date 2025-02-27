@@ -8,6 +8,8 @@ void ABasicPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveLR", this, &ThisClass::MoveLR);
 	InputComponent->BindAxis("LookUD", this, &ThisClass::LookUD);
 	InputComponent->BindAxis("LookLR", this, &ThisClass::LookLR);
+
+	InputComponent->BindAxis("Run", this, &ThisClass::Run);
 }
 
 // BindAxis Movement
@@ -39,4 +41,14 @@ void ABasicPlayerController::LookUD(const float Value)
 void ABasicPlayerController::LookLR(const float Value)
 {
 	AddYawInput(Value);
+}
+
+void ABasicPlayerController::Run(const float Value)
+{
+	if (auto* const ControlledPawn = GetPawn())
+	{
+		float const Speed = 300.0f + (300.0f * Value);
+
+		//ControlledPawn->AddMovementInput()
+	}
 }

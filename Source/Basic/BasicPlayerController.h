@@ -17,4 +17,6 @@ private:
 	void MoveLR(const float Value);
 	void LookUD(const float Value);
 	void LookLR(const float Value);
+
+	void Run(const float Value);
 };

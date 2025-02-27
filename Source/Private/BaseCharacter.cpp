@@ -15,6 +15,11 @@ ABaseCharacter::ABaseCharacter()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
+	// Set Walk
+	
+	// Set Crouch
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+
 	// Jump Scale
 	GetCharacterMovement()->GravityScale = 2.0f;
 	GetCharacterMovement()->JumpZVelocity = 600.0f;
@@ -66,11 +71,6 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-}
-
-void ABaseCharacter::CustomCrouch()
-{
-	Crouch();
 }
 
 void ABaseCharacter::CustomWalk()

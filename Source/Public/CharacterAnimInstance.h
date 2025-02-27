@@ -16,7 +16,8 @@ public:
 
 private:
 	virtual void WallRunUp(bool WallUp) override { bWallRunUp = WallUp; }
-	virtual void CustomJump(bool IsJump) override { bIsJump = IsJump; }
+
+	virtual void CustomJump(bool IsJump) override { bIsJumping = IsJump; }
 
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -29,9 +30,11 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
 		float Pitch;
 
-
+private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
-		bool bIsJump = false;
+		bool bIsJumping = false;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
+		bool bIsCrouching = false;
 private:
 #pragma region ParkourComponent
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
