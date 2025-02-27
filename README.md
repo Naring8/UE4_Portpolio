@@ -55,3 +55,7 @@ I wanted to make code(Parkour Component) independently (because it is Component 
 
 So I choose the 3rd method to reduce error
 3. Set New State in AnimationInstance and access by Interface $\rightarrow$ Play Montage in Parkour Code
+
+25.02.27
+- Crouch System
+	Use Blend system in Blueprint (UE Editor)
