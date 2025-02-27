@@ -2,6 +2,7 @@
 #include <GameFramework/Character.h>
 #include <GameFramework/CharacterMovementComponent.h>
 
+#include <Components/CapsuleComponent.h>
 UParkourComponent::UParkourComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -36,6 +37,12 @@ void UParkourComponent::BeginPlay()
 				DataMap.Add(EParkourType(Key), Values);
 			}
 		}
+
+		if (auto const& OwnerCharacter = Cast<ACharacter>(Owner)) // Is Owner Valid
+		{
+			OwnerCapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+			OwnerCapsuleRadius = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+		}
 	}
 }
 
@@ -46,16 +53,12 @@ void UParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 }
 
 #include <CharacterAnimInstance.h>
-#include <Components/CapsuleComponent.h>
 void UParkourComponent::BeginParkour()
 {
-	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner)) // Is Owner Valid
-	{
-		OwnerCapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-		OwnerCapsuleRadius = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
-
+	if (IsValid(ParkourDataTable))
 		TraceForward();
-	}
+	else
+		Jumping();
 }
 
 #include <Kismet/KismetSystemLibrary.h>
