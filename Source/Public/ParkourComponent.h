@@ -53,28 +53,32 @@ private:
 		void BeginParkour();
 
 private:
-#pragma region TraceSide
+#pragma region (Trace & Check) Obstacle
 	void TraceForward();
 	void CheckObstacleHeight(FHitResult HitResult);
 	void CheckObstacleThickness(FHitResult HitResult);
 #pragma endregion
 
 #pragma region ParkourActing
-	void WallClimbingTest();
-	void CheckWall();
+	void ValidateWallClimb();
+	void CheckWallClimb();
 	void Jumping();
 	void Vaulting();
 	void BracedDrop();
 #pragma endregion
 
-private:
-	FParkourData const* FindData(EParkourType const Type) const;
+#pragma region CodeForMontage
 	void PlayMontage();
 
 	UFUNCTION()
-		void ResetValues(UAnimMontage* Montage, bool bInterrupted);
+		void ResetVariables(UAnimMontage* Montage, bool bInterrupted);
+#pragma endregion
 
+#pragma region Support Code
+	FParkourData const* FindData(EParkourType const Type) const;
+	void SupplementForAction(float divVal = 400.0f);
 	void IgnoreInput(bool LookInput, bool MoveInput);
+#pragma endregion
 
 private:
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = "true"))
@@ -101,8 +105,6 @@ private:
 
 	FVector SidePlace;
 	float Height;
-
-	bool HasSide;
 
 private:
 	mutable float ObstacleGap;

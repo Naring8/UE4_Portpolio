@@ -1,8 +1,8 @@
 #include "ParkourComponent.h"
 #include <GameFramework/Character.h>
+#include <Components/CapsuleComponent.h>
 #include <GameFramework/CharacterMovementComponent.h>
 
-#include <Components/CapsuleComponent.h>
 UParkourComponent::UParkourComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -77,19 +77,19 @@ void UParkourComponent::TraceForward()
 		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_EngineTraceChannel1), //ETraceTypeQuery::TraceTypeQuery1
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		HitResult,
-		true, FLinearColor::Black
+		true
 	))
 		CheckObstacleHeight(HitResult);
 	else
 		Jumping();
 }
 
-void UParkourComponent::CheckObstacleHeight(FHitResult HitResult)
+void UParkourComponent::CheckObstacleHeight(FHitResult DetectedResult)
 {
-	SideLocation = HitResult.Location;
-	SideNormal = HitResult.Normal;
+	SideLocation = DetectedResult.Location;
+	SideNormal = DetectedResult.Normal;
 	Rotation = UKismetMathLibrary::DegAcos(
 		UKismetMathLibrary::Dot_VectorVector(
 			UKismetMathLibrary::MakeRotFromX(SideNormal).Quaternion().GetForwardVector().GetSafeNormal(0.0001),
@@ -98,48 +98,45 @@ void UParkourComponent::CheckObstacleHeight(FHitResult HitResult)
 	FVector End = SideLocation - UKismetMathLibrary::MakeRotFromX(SideNormal).Quaternion().GetForwardVector() * 40.0f;
 	FVector Start = UpTrace + End;
 
-	FHitResult ObstacleHitResult;
+	FHitResult HitResult;
 	if (UKismetSystemLibrary::CapsuleTraceSingle(
 		this, Start, End,
 		OwnerCapsuleRadius, OwnerCapsuleHalfHeight,
 		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_EngineTraceChannel1), //ETraceTypeQuery::TraceTypeQuery1
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
-		ObstacleHitResult,
-		true, FLinearColor::Blue
+		EDrawDebugTrace::None,
+		HitResult,
+		true
 	))
-		CheckObstacleThickness(ObstacleHitResult);
+		CheckObstacleThickness(HitResult);
 }
 
-void UParkourComponent::CheckObstacleThickness(FHitResult HitResult)
+void UParkourComponent::CheckObstacleThickness(FHitResult DetectedResult)
 {
-	SidePlace = HitResult.Location;
-	Height = HitResult.ImpactPoint.Z -
-		(Owner->GetActorLocation().Z - OwnerCapsuleHalfHeight);
+	SidePlace = DetectedResult.Location;
+	Height = DetectedResult.ImpactPoint.Z - (Owner->GetActorLocation().Z - OwnerCapsuleHalfHeight);
 
-	// Print On Screen
-	/*GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Yellow,
-		FString::Printf(TEXT("Height: %f"), Height));*/
 
 	FVector End = SideLocation - (UKismetMathLibrary::MakeRotFromX(SideNormal).Quaternion().GetForwardVector() * (60.0f));
 	FVector Start = UpTrace + End;
 
-	FHitResult temp;
+	FHitResult HitResult;
 	if (UKismetSystemLibrary::LineTraceSingle(
 		this, Start, End,
 		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_EngineTraceChannel1), //ETraceTypeQuery::TraceTypeQuery1
 		false, ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
-		temp,
-		true, FLinearColor::Red
+		EDrawDebugTrace::None,
+		HitResult,
+		true
 	))
-		WallClimbingTest();
+		ValidateWallClimb();
 	else
 		Vaulting();
 }
 
-void UParkourComponent::WallClimbingTest()
+
+void UParkourComponent::ValidateWallClimb()
 {
 	FVector AddHalfHeight = FVector(SidePlace.X, SidePlace.Y, SidePlace.Z + OwnerCapsuleHalfHeight);
 	const float QuarterHeight = OwnerCapsuleHalfHeight * 0.5f;
@@ -147,68 +144,29 @@ void UParkourComponent::WallClimbingTest()
 	FVector Start = FVector(AddHalfHeight.X, AddHalfHeight.Y, AddHalfHeight.Z + QuarterHeight);
 	FVector End = FVector(AddHalfHeight.X, AddHalfHeight.Y, AddHalfHeight.Z - QuarterHeight);
 
-	FHitResult Temp;
+	FHitResult HitResult;
 	if (UKismetSystemLibrary::SphereTraceSingle(
 		this, Start, End,
 		OwnerCapsuleRadius,
 		UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_EngineTraceChannel1), //ETraceTypeQuery::TraceTypeQuery1
 		false, ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
-		Temp,
-		true, FLinearColor::Red
+		EDrawDebugTrace::None,
+		HitResult,
+		true
 	))
-		HasSide = false;
+		return;
 	else
-		CheckWall();
+		CheckWallClimb();
 }
 
-#include <../Interfaces/CharacterMovementInterface.h>
-void UParkourComponent::CheckWall()
+void UParkourComponent::CheckWallClimb()
 {
 	if ((Height > 40.0f) && (140.0f <= Rotation && Rotation <= 220.0f))
 	{
 		PlayableParkourData = FindData(EParkourType::Jump);
+
 		if (PlayableParkourData)
-		{
-			float delayTime = ObstacleGap / 400.0f;
-			if ((delayTime > 0.0f) && Height > (PlayableParkourData->DistMin + 80))
-			{
-				if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
-				{
-					OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-
-					FVector MoveLocation = (SidePlace - FVector(0.0f, 0.0f, PlayableParkourData->DistMin)) + (OwnerCharacter->GetActorForwardVector() * (-40.0f));
-
-					if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
-						CustomCharacterMovement->WallRunUp(true);
-
-					FLatentActionInfo LatentInfo;
-					LatentInfo.CallbackTarget = this;
-
-					UKismetSystemLibrary::MoveComponentTo(OwnerCharacter->GetCapsuleComponent(),
-						MoveLocation,
-						OwnerCharacter->GetActorRotation(),
-						false,
-						false,
-						delayTime,
-						false,
-						EMoveComponentAction::Move,
-						LatentInfo);
-
-					FTimerHandle TimerHandle;
-					GetWorld()->GetTimerManager().SetTimer
-					(
-						TimerHandle,                                // 핸들
-						this,                                       // 대상 객체
-						&ThisClass::PlayMontage,
-						delayTime,                                  // 반복 주기(초)
-						false                                      // 반복 여부
-					);
-				}
-			}
-			else
-				PlayMontage();
-		}
+			SupplementForAction();
 		else
 			BracedDrop();
 	}
@@ -227,29 +185,9 @@ void UParkourComponent::Vaulting()
 	PlayableParkourData = FindData(EParkourType::Vault);
 
 	if (PlayableParkourData)
-		PlayMontage();
+		SupplementForAction();
 	else
-		WallClimbingTest();
-}
-
-FParkourData const* UParkourComponent::FindData(EParkourType const Type) const
-{
-	if (DataMap.Contains(Type) == false)
-		return false;
-
-	auto const& DataArray = DataMap[Type];
-
-	for (int32 i = 0; i < DataArray.Num(); i++)
-	{
-		// UKismetMathLibrary::InRange_FloatFloat(Height, PData->DistMin, PData->DistMax, true, false)
-		if (DataArray[i].DistMin <= Height && Height < DataArray[i].DistMax) // Simple Calc
-		{
-			ObstacleGap = Height - 200.0f;
-			return &DataArray[i];
-		}
-	}
-
-	return nullptr;
+		ValidateWallClimb();
 }
 
 void UParkourComponent::BracedDrop()
@@ -259,6 +197,7 @@ void UParkourComponent::BracedDrop()
 	if (PlayableParkourData)
 		PlayMontage();
 }
+
 
 void UParkourComponent::PlayMontage()
 {
@@ -274,7 +213,7 @@ void UParkourComponent::PlayMontage()
 			IgnoreInput(true, false);
 
 			if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
-				OwnerAnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::ResetValues);
+				OwnerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &ThisClass::ResetVariables);
 
 			OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
 
@@ -283,7 +222,7 @@ void UParkourComponent::PlayMontage()
 }
 
 #include <../Basic/BasicPlayerController.h>
-void UParkourComponent::ResetValues(UAnimMontage* Montage, bool bInterrupted)
+void UParkourComponent::ResetVariables(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 	{
@@ -293,11 +232,76 @@ void UParkourComponent::ResetValues(UAnimMontage* Montage, bool bInterrupted)
 
 		if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
 			if (OwnerAnimInstance->OnMontageEnded.IsBound())
-				OwnerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UParkourComponent::ResetValues);
+				OwnerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UParkourComponent::ResetVariables);
 
 		if (auto const& OwnerController = Cast<ABasicPlayerController>(OwnerCharacter->GetController()))
 			OwnerController->ResetIgnoreInputFlags();
 	}
+}
+
+
+FParkourData const* UParkourComponent::FindData(EParkourType const Type) const
+{
+	if (DataMap.Contains(Type) == false)
+		return false;
+
+	auto const& DataArray = DataMap[Type];
+
+	for (int32 i = 0; i < DataArray.Num(); i++)
+	{
+		// UKismetMathLibrary::InRange_FloatFloat(Height, PData->DistMin, PData->DistMax, true, false)
+		if (DataArray[i].DistMin <= Height && Height < DataArray[i].DistMax) // Simple Calc
+		{
+			ObstacleGap = Height - DataArray[i].DistMin;
+			return &DataArray[i];
+		}
+	}
+
+	return nullptr;
+}
+
+#include <../Interfaces/CharacterMovementInterface.h>
+void UParkourComponent::SupplementForAction(float divVal)
+{
+	float delayTime = ObstacleGap / divVal;
+
+	if ((delayTime > 0.0f) && Height > (PlayableParkourData->DistMin + 10))
+	{
+		if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
+		{
+			OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+
+			FVector MoveLocation = (SidePlace - FVector(0.0f, 0.0f, PlayableParkourData->DistMin)) + (OwnerCharacter->GetActorForwardVector() * (-40.0f));
+
+			if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+				CustomCharacterMovement->WallRunUp(true);
+
+			FLatentActionInfo LatentInfo;
+			LatentInfo.CallbackTarget = this;
+
+			UKismetSystemLibrary::MoveComponentTo(OwnerCharacter->GetCapsuleComponent(),
+				MoveLocation,
+				OwnerCharacter->GetActorRotation(),
+				false,
+				false,
+				delayTime,
+				false,
+				EMoveComponentAction::Move,
+				LatentInfo);
+
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer
+			(
+				TimerHandle,                                // 핸들
+				this,                                       // 대상 객체
+				&ThisClass::PlayMontage,
+				delayTime,                                  // 반복 주기(초)
+				false                                      // 반복 여부
+			);
+		}
+	}
+	else
+		PlayMontage();
 }
 
 void UParkourComponent::IgnoreInput(bool LookInput, bool MoveInput)
@@ -311,6 +315,3 @@ void UParkourComponent::IgnoreInput(bool LookInput, bool MoveInput)
 		}
 	}
 }
-
-
-
