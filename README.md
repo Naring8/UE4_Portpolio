@@ -59,3 +59,9 @@ So I choose the 3rd method to reduce error
 25.02.27
 - Crouch System
 	Use Blend system in Blueprint (UE Editor)
+
+25.03.03
+- Parkour System
+	- Rename Some Functions & Variables
+	- Change `OnMontageEnded` to `OnMontageBlendingOut` due to Vaulting Montage's long duration
+	- Remove DebugLine
