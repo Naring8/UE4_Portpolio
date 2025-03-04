@@ -65,3 +65,8 @@ So I choose the 3rd method to reduce error
 	- Rename Some Functions & Variables
 	- Change `OnMontageEnded` to `OnMontageBlendingOut` due to Vaulting Montage's long duration
 	- Remove DebugLine
+
+25.03.04
+- Prepare for Weapon Action
+	1. Weapon code for Blueprint
+	2. Montage Data Asset for each Weapon
