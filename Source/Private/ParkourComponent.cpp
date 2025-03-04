@@ -231,8 +231,8 @@ void UParkourComponent::ResetVariables(UAnimMontage* Montage, bool bInterrupted)
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
 		if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
-			if (OwnerAnimInstance->OnMontageEnded.IsBound())
-				OwnerAnimInstance->OnMontageEnded.RemoveDynamic(this, &UParkourComponent::ResetVariables);
+			if (OwnerAnimInstance->OnMontageBlendingOut.IsBound())
+				OwnerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UParkourComponent::ResetVariables);
 
 		if (auto const& OwnerController = Cast<ABasicPlayerController>(OwnerCharacter->GetController()))
 			OwnerController->ResetIgnoreInputFlags();
