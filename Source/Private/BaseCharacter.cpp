@@ -16,6 +16,7 @@ ABaseCharacter::ABaseCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	// Set Walk
+	Walk(); // Default
 	
 	// Set Crouch
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
@@ -42,8 +43,8 @@ ABaseCharacter::ABaseCharacter()
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f).Quaternion());
 
 	// NEEDS: Change Capulse Size depends on CharacterState
-	GetCapsuleComponent()->SetCapsuleHalfHeight(95.0f);
-	GetCapsuleComponent()->SetCapsuleRadius(35.0f);
+	GetCapsuleComponent()->SetCapsuleHalfHeight(DefaultCapsuleHalfHeight);
+	GetCapsuleComponent()->SetCapsuleRadius(DefaultCapsuleRadius);
 }
 
 void ABaseCharacter::OnConstruction(FTransform const& Transform)
@@ -73,8 +74,23 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
-void ABaseCharacter::CustomWalk()
+void ABaseCharacter::CustomCrouch()
 {
-	
+	Crouch();
+}
+
+void ABaseCharacter::CustomUnCrouch()
+{
+	UnCrouch();
+}
+
+void ABaseCharacter::Walk()
+{
+	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
+}
+
+void ABaseCharacter::Run()
+{
+	GetCharacterMovement()->MaxWalkSpeed = runSpeed;
 }
 

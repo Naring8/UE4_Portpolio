@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include <../Interfaces/CharacterMovementInterface.h>
 #include "BaseCharacter.generated.h"
 
 UCLASS()
-class UE4_PORTPOLIO_API ABaseCharacter : public ACharacter
+class UE4_PORTPOLIO_API ABaseCharacter : public ACharacter, public ICharacterMovementInterface
 {
 	GENERATED_BODY()
 
@@ -25,9 +26,14 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-
 	UFUNCTION(BlueprintCallable)
-		void CustomWalk();
+		void CustomCrouch();
+	UFUNCTION(BlueprintCallable)
+		void CustomUnCrouch();
+
+private:
+	virtual void Walk() override;
+	virtual void Run() override;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -36,8 +42,15 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		class UCameraComponent* Camera;
 
+	TSubclassOf<class ABaseWeapon> curWeapon;
+
 private:
-	float walkSpeed = 300.0f;
+	float walkSpeed = 200.0f;
 	float runSpeed = 600.0f;
+
+	float DefaultCapsuleHalfHeight = 95.0f;
+	float DefaultCapsuleRadius = 35.0f;
+
+	float CrouchCapsuleHalfHeight = 65.0f;
 
 };
