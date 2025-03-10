@@ -1,17 +1,22 @@
 #include "BaseWeapon.h"
 
 #include <Components/CapsuleComponent.h>
+#include <Components/StaticMeshComponent.h>
 #include <Components/SkeletalMeshComponent.h>
 
 ABaseWeapon::ABaseWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
-	SetRootComponent(Mesh);
-
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>("Capsule");
-	Capsule->SetupAttachment(Mesh);
+	SetRootComponent(Capsule);
+
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
+	StaticMesh->SetupAttachment(Capsule);
+
+
+	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
+	SkeletalMesh->SetupAttachment(Capsule);
 }
 
 void ABaseWeapon::BeginPlay()

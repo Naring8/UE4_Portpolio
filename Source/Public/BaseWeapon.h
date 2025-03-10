@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include <../Basic/CustomStruct.h>
 #include "BaseWeapon.generated.h"
 
 UCLASS()
@@ -21,10 +22,18 @@ public:
 protected:
 #pragma region WeaponComponents
 	UPROPERTY(VisibleAnywhere)
-		class USkeletalMeshComponent* Mesh;
+		class UCapsuleComponent* Capsule;
 
 	UPROPERTY(VisibleAnywhere)
-		class UCapsuleComponent* Capsule;
+		class UStaticMeshComponent* StaticMesh;
+	UPROPERTY(VisibleAnywhere)
+		class USkeletalMeshComponent* SkeletalMesh;
 #pragma endregion
 
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponInformation", meta = (AllowPrivateAccess))
+		float Damage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "DataAssets", meta = (AllowPrivateAccess))
+		class UMontageDataAsset* ActingData;	// replace to map(container)
 };
