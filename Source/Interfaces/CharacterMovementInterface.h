@@ -18,6 +18,9 @@ public:
 	virtual void LeftFoot() PURE_VIRTUAL(ICharacterMovementInterface::LeftFoot)
 	virtual void RightFoot() PURE_VIRTUAL(ICharacterMovementInterface::RightFoot)
 
+	virtual void Walk() PURE_VIRTUAL(ICharacterMovementInterface::Walk)
+	virtual void Run() PURE_VIRTUAL(ICharacterMovementInterface::Run)
+
 	virtual void CustomJump(bool IsJump) PURE_VIRTUAL(ICharacterMovementInterface::CustomJump)
 
 	virtual void WallRunUp(bool WallUp) PURE_VIRTUAL(ICharacterMovementInterface::WallRunUp)
