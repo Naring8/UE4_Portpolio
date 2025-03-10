@@ -70,3 +70,7 @@ So I choose the 3rd method to reduce error
 - Prepare for Weapon Action
 	1. Weapon code for Blueprint
 	2. Montage Data Asset for each Weapon
+
+25.03.10
+- Modify Animation Data Asset
+- Add Assassination Component
