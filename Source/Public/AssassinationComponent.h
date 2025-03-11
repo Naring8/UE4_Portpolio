@@ -52,4 +52,7 @@ private:
 private:
 	UPROPERTY()
 		TArray<struct FAssassinationData> AssassinationArray;
+
+	class UArrowComponent* ForwardArrow;
+	float TraceDistance = 50.0f;
 };
