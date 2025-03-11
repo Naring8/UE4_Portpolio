@@ -13,7 +13,7 @@ class UE4_PORTPOLIO_API UMontageDataAsset : public UDataAsset
 	GENERATED_BODY()
 	
 public:
-	struct FMontageData GetMontageData(int32 const Index);
+	FMontageData GetMontageData(int32 const Index);
 
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess))
@@ -26,7 +26,7 @@ class UE4_PORTPOLIO_API USequenceDataAsset : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	struct FSequenceData GetSequenceData(int32 const Index);
+	FSequenceData GetSequenceData(int32 const Index);
 
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess))
