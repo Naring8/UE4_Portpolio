@@ -74,3 +74,8 @@ So I choose the 3rd method to reduce error
 25.03.10
 - Modify Animation Data Asset
 - Add Assassination Component
+
+25.03.11
+- Assassination Component
+	- TraceForward func
+	- Assassinate func
