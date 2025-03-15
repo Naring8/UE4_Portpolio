@@ -4,22 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include <../Basic/CustomStruct.h>
 #include "MontageDataAsset.generated.h"
-
-USTRUCT(Atomic, BlueprintType)
-struct FMontageData
-{
-	GENERATED_USTRUCT_BODY()
-
-public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		class UAnimMontage* Montage = nullptr;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		float PlayRate = 1.0f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		FName Section;
-};
-
 
 UCLASS()
 class UE4_PORTPOLIO_API UMontageDataAsset : public UDataAsset
@@ -31,5 +17,5 @@ public:
 
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess))
-		TArray<FMontageData> MontageData;
+		TArray<struct FMontageData> MontageData;
 };

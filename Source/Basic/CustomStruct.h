@@ -24,17 +24,3 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		FName Section;
 };
-
-USTRUCT(Atomic, BlueprintType)
-struct FSequenceData
-{
-	GENERATED_USTRUCT_BODY()
-
-public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		class UAnimSequence* Sequence = nullptr;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		float PlayRate = 1.0f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		FName Section;
-};
