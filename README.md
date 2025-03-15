@@ -79,3 +79,11 @@ So I choose the 3rd method to reduce error
 - Assassination Component
 	- TraceForward func
 	- Assassinate func
+
+25.03.15
+- Animation-related Code
+	- Add `AnimationInterface`
+	- Add `PlayAnimation` in `ABaseCharacter`
+- Assassination Component
+	- make easy to use Animation Montage by using DataTable (easy to ReadWrite in Blueprint)
+	- Use DataTable to sort (Assassin, Assassinated) Animation etc.
