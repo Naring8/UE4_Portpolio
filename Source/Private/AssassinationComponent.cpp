@@ -1,7 +1,10 @@
-#include "AssassinationComponent.h"
-#include <../Basic/UE4_Portpolio.h>
+#include <AssassinationComponent.h>
+
+#include "../Basic/UE4_Portpolio.h"
+#include <Engine/DataTable.h>
 #include <GameFramework/Character.h>
 #include <Components/ArrowComponent.h>
+
 
 UAssassinationComponent::UAssassinationComponent()
 {
@@ -15,6 +18,26 @@ void UAssassinationComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (IsValid(AssassinateDataTable))
+	{
+		TArray<FAssassinateData const*> Rows;
+
+		AssassinateDataTable->GetAllRows("", Rows);
+
+		if (Rows.Num() > 0)
+		{
+			for (int32 Key = 0; Key < int32(EAssassinationType::Max); Key++)
+			{
+				FAssassinateData Value;
+
+				for (auto& Row : Rows)
+					if (Key == Row->Type)
+						Value = *Row;
+
+				DataMap.Add(EAssassinationType(Key), Value);
+			}
+		}
+	}
 }
 
 
@@ -26,37 +49,46 @@ void UAssassinationComponent::TickComponent(float DeltaTime, ELevelTick TickType
 		TraceForward();
 }
 
+#include "../Interfaces/AnimationInterface.h"
 void UAssassinationComponent::Assassinate()
 {
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Assassinate!"));
+
+	if (DataMap.Contains(EAssassinationType::Assassin) && DataMap.Contains(EAssassinationType::Assassinated))
+	{
+		FAssassinateData const* Actor = DataMap.Find(EAssassinationType::Assassin);
+		FAssassinateData const* Actee = DataMap.Find(EAssassinationType::Assassinated);
+
+		if (HitResult.bBlockingHit && HitResult.GetActor() != nullptr)
+		{
+			// typedef UStaticMeshComponent MeshType;	// typedef 도 지역의 영향을 받는다
+
+			if (auto* const Owner = Cast<IAnimationInterface>(GetOwner()))
+				Owner->PlayAnimation(Actor->Montage, Actor->PlayRate, Actor->Section);
+
+			if (auto* const Victum = Cast<IAnimationInterface>(HitResult.GetActor()))
+				Victum->PlayAnimation(Actee->Montage, Actee->PlayRate, Actee->Section);
+		}
+	}
 }
 
 #include <Kismet/KismetSystemLibrary.h>
 #include <Kismet/KismetMathLibrary.h>
 void UAssassinationComponent::TraceForward()
 {
-	AActor* HitObstacle = nullptr;
-	FVector HitObstacleExtent = FVector::ZeroVector;
-	float HitDistance = 0;
-	float YawToFace = 0;
-
-	FVector WallLocation = FVector::ZeroVector;
-	FVector WallNormal = FVector::ZeroVector;
-
 #pragma region TraceArrow
 	FVector const Start = ForwardArrow->GetComponentLocation() + GetOwner()->GetActorLocation();
 	FVector const End = Start + 
 		(TraceDistance * 
 			GetOwner()->GetActorForwardVector());
 
-	FHitResult HitResult;
 	UKismetSystemLibrary::LineTraceSingle
 	(
 		this,
 		Start,
 		End,
-		UEngineTypes::ConvertToTraceType(AssassinableCharacter), // Can Climb TraceChannel Collision
+		UEngineTypes::ConvertToTraceType(AssassinableCharacter), // Can killable TraceChannel Collision
 		false,
 		{ GetOwner() },
 		EDrawDebugTrace::ForOneFrame,
@@ -64,25 +96,4 @@ void UAssassinationComponent::TraceForward()
 		true
 	);
 #pragma endregion
-
-	if (HitResult.bBlockingHit && HitResult.GetActor() != nullptr)
-	{
-		typedef UStaticMeshComponent MeshType;	// typedef 도 지역의 영향을 받는다
-
-		if (MeshType const* const Mesh = Cast<MeshType>(HitResult.Actor->GetComponentByClass(MeshType::StaticClass())))
-		{
-			HitObstacle = HitResult.GetActor();
-
-			FVector Min, Max;
-
-			Mesh->GetLocalBounds(Min, Max);
-
-			HitObstacleExtent = (Max - Min) * HitObstacle->GetActorScale();
-			HitDistance = HitResult.Distance;
-			YawToFace = UKismetMathLibrary::MakeRotFromX(-HitResult.Normal).Yaw;
-
-			WallLocation = HitResult.Location;
-			WallNormal = HitResult.Normal;
-		}
-	}
 }

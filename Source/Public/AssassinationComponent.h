@@ -17,16 +17,15 @@ namespace EAssassination
 } typedef EAssassination::Type EAssassinationType;
 
 USTRUCT(Atomic, BlueprintType)
-struct FAssassinationData : public FTableRowBase
+struct FAssassinateData : public FTableRowBase
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere) TEnumAsByte<EAssassination::Type> Type;
-	UPROPERTY(EditAnywhere) class UAnimSequence* Sequence;
+	UPROPERTY(EditAnywhere) class UAnimMontage* Montage;
 	UPROPERTY(EditAnywhere) float PlayRate = 1.0f;
 	UPROPERTY(EditAnywhere) FName Section;
 };
-
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UE4_PORTPOLIO_API UAssassinationComponent : public UActorComponent
@@ -50,9 +49,30 @@ private:
 	void TraceForward();
 		
 private:
-	UPROPERTY()
-		TArray<struct FAssassinationData> AssassinationArray;
+	/*UPROPERTY()
+		TArray<struct FAssassinationData> AssassinationArray;*/
+	UPROPERTY(EditAnywhere, category = "DataTable", meta = (AllowPrivateAccess = "true"))
+		class UDataTable* AssassinateDataTable;
+	TMap<EAssassinationType, FAssassinateData> DataMap;
+
+	/*UPROPERTY(EditAnywhere, category = "Animation", meta = (AllowPrivateAccess))
+		class UAnimMontage* Actor;
+	UPROPERTY(EditAnywhere, category = "Animation", meta = (AllowPrivateAccess))
+		class UAnimMontage* Actee;*/
 
 	class UArrowComponent* ForwardArrow;
-	float TraceDistance = 50.0f;
+
+	UPROPERTY(EditAnywhere)
+		float TraceDistance = 300.0f;
+
+private:
+	AActor* HitObstacle = nullptr;
+	FVector HitObstacleExtent = FVector::ZeroVector;
+	float HitDistance = 0;
+	float YawToFace = 0;
+
+	FHitResult HitResult;
+
+	FVector WallLocation = FVector::ZeroVector;
+	FVector WallNormal = FVector::ZeroVector;
 };
