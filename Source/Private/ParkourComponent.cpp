@@ -216,13 +216,12 @@ void UParkourComponent::PlayMontage()
 				OwnerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &ThisClass::ResetVariables);
 
 			OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
-
 		}
 	}
 }
 
-#include <../Basic/BasicPlayerController.h>
-void UParkourComponent::ResetVariables(UAnimMontage* Montage, bool bInterrupted)
+//#include <../Basic/BasicPlayerController.h>
+void UParkourComponent::ResetVariables(UAnimMontage* const Montage, bool const bInterrupted)
 {
 	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 	{
@@ -234,8 +233,7 @@ void UParkourComponent::ResetVariables(UAnimMontage* Montage, bool bInterrupted)
 			if (OwnerAnimInstance->OnMontageBlendingOut.IsBound())
 				OwnerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UParkourComponent::ResetVariables);
 
-		if (auto const& OwnerController = Cast<ABasicPlayerController>(OwnerCharacter->GetController()))
-			OwnerController->ResetIgnoreInputFlags();
+		OwnerCharacter->GetController()->ResetIgnoreInputFlags();
 	}
 }
 
@@ -308,10 +306,7 @@ void UParkourComponent::IgnoreInput(bool LookInput, bool MoveInput)
 {
 	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
 	{
-		if (auto const& OwnerController = Cast<ABasicPlayerController>(OwnerCharacter->GetController()))
-		{
-			OwnerController->SetIgnoreLookInput(LookInput);
-			OwnerController->SetIgnoreMoveInput(MoveInput);
-		}
+		OwnerCharacter->GetController()->SetIgnoreLookInput(LookInput);
+		OwnerCharacter->GetController()->SetIgnoreMoveInput(MoveInput);
 	}
 }

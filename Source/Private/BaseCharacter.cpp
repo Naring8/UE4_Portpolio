@@ -1,5 +1,6 @@
 #include "BaseCharacter.h"
 #include <Components/CapsuleComponent.h>
+//#include <Components/SkeletalMeshComponent.h>
 #include <GameFramework/CharacterMovementComponent.h>
 
 #include <GameFramework/SpringArmComponent.h>
@@ -8,7 +9,7 @@
 // Sets default values
 ABaseCharacter::ABaseCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 이동 방향으로 회전
@@ -17,7 +18,7 @@ ABaseCharacter::ABaseCharacter()
 
 	// Set Walk
 	Walk(); // Default
-	
+
 	// Set Crouch
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
@@ -57,7 +58,7 @@ void ABaseCharacter::OnConstruction(FTransform const& Transform)
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -65,6 +66,16 @@ void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/*if (GetMesh()->GetAnimInstance()->OnMontageEnded.IsBound())
+	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, TEXT("OnMontageEnded is still bound"));
+	}
+	else
+	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, TEXT("OnMontageEnded has been unboundd"));
+	}*/
 }
 
 // Called to bind functionality to input
@@ -74,12 +85,42 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
+#include <CharacterAnimInstance.h>
+void ABaseCharacter::PlayAnimation(UAnimMontage* const Montage, float const PlayRate, FName const Section)
+{
+	if (!Montage)
+		return;
+
+	GetCharacterMovement()->StopMovementImmediately();
+	GetController()->SetIgnoreLookInput(true);
+	GetController()->SetIgnoreMoveInput(true);
+
+	PlayAnimMontage(Montage, PlayRate, Section);
+
+	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
+		GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &ThisClass::ResetToIdle);
+}
+
+#include <../Basic/BasicPlayerController.h>
+void ABaseCharacter::ResetToIdle(UAnimMontage* const Montage, bool const bInterrupted)
+{
+	// TODO: IT BIND IN OnMontageEnded but this Function is not calling
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Magenta, TEXT("Montage Ended Successfully"));
+
+	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
+		if (OwnerAnimInstance->OnMontageEnded.IsBound())
+			OwnerAnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::ResetToIdle);
+
+	GetController()->ResetIgnoreInputFlags();
+}
+
 void ABaseCharacter::CustomCrouch()
 {
 	Crouch();
 }
 
-void ABaseCharacter::CustomUnCrouch()
+void ABaseCharacter::CustomUncrouch()
 {
 	UnCrouch();
 }
@@ -93,4 +134,3 @@ void ABaseCharacter::Run()
 {
 	GetCharacterMovement()->MaxWalkSpeed = runSpeed;
 }
-

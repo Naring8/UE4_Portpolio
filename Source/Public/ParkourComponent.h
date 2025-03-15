@@ -71,7 +71,7 @@ private:
 	void PlayMontage();
 
 	UFUNCTION()
-		void ResetVariables(UAnimMontage* Montage, bool bInterrupted);
+		void ResetVariables(UAnimMontage* const Montage, bool const bInterrupted);
 #pragma endregion
 
 #pragma region Support Code
