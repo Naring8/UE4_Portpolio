@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include <GameFramework/CharacterMovementComponent.h>
 #include "CharacterMovementInterface.generated.h"
 
 UINTERFACE(MinimalAPI)

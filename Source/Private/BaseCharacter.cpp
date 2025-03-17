@@ -1,8 +1,5 @@
 #include "BaseCharacter.h"
 #include <Components/CapsuleComponent.h>
-//#include <Components/SkeletalMeshComponent.h>
-#include <GameFramework/CharacterMovementComponent.h>
-
 #include <GameFramework/SpringArmComponent.h>
 #include <Camera/CameraComponent.h>
 
@@ -66,16 +63,8 @@ void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*if (GetMesh()->GetAnimInstance()->OnMontageEnded.IsBound())
-	{
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, TEXT("OnMontageEnded is still bound"));
-	}
-	else
-	{
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, TEXT("OnMontageEnded has been unboundd"));
-	}*/
+	if (CharacterState == ECharacterState::DEAD)
+		return;
 }
 
 // Called to bind functionality to input
@@ -85,52 +74,53 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
-#include <CharacterAnimInstance.h>
+#include "CharacterAnimInstance.h"
+#include "../Interfaces/ControllerInterface.h"
 void ABaseCharacter::PlayAnimation(UAnimMontage* const Montage, float const PlayRate, FName const Section)
 {
 	if (!Montage)
 		return;
 
 	GetCharacterMovement()->StopMovementImmediately();
-	GetController()->SetIgnoreLookInput(true);
-	GetController()->SetIgnoreMoveInput(true);
-
-	PlayAnimMontage(Montage, PlayRate, Section);
+	if (auto const& PlayerController = Cast<IControllerInterface>(GetController()))
+		PlayerController->IgnoreInput(true, true);
 
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
-		GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &ThisClass::ResetToIdle);
+		OwnerAnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::ResetToIdle);
+
+	PlayAnimMontage(Montage, PlayRate, Section);
 }
 
-#include <../Basic/BasicPlayerController.h>
 void ABaseCharacter::ResetToIdle(UAnimMontage* const Montage, bool const bInterrupted)
 {
-	// TODO: IT BIND IN OnMontageEnded but this Function is not calling
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Magenta, TEXT("Montage Ended Successfully"));
-
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
 		if (OwnerAnimInstance->OnMontageEnded.IsBound())
 			OwnerAnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::ResetToIdle);
 
 	GetController()->ResetIgnoreInputFlags();
+
+	/*if (GetCharacterMovement()->IsCrouching())
+		GetCharacterMovement()->UnCrouch();*/
 }
 
-void ABaseCharacter::CustomCrouch()
+void ABaseCharacter::Die()
 {
-	Crouch();
-}
+	if (CharacterState == ECharacterState::DEAD) return; // 이미 사망한 상태라면 중복 실행 방지
 
-void ABaseCharacter::CustomUncrouch()
-{
-	UnCrouch();
-}
+	CharacterState = ECharacterState::DEAD;
 
-void ABaseCharacter::Walk()
-{
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
-}
+	// 애니메이션 정지
+	GetMesh()->bPauseAnims = true;
 
-void ABaseCharacter::Run()
-{
-	GetCharacterMovement()->MaxWalkSpeed = runSpeed;
+	// 이동 불가능하게 설정
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+
+	// 입력 비활성화
+	if(auto const& PlayerController = Cast<APlayerController>(GetController()))
+		PlayerController->DisableInput(PlayerController);
+
+	// 물리 시뮬레이션 활성화 (옵션)
+	GetMesh()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

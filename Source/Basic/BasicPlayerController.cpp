@@ -34,16 +34,6 @@ void ABasicPlayerController::MoveLR(const float Value)
 	}
 }
 
-void ABasicPlayerController::LookUD(const float Value)
-{
-	AddPitchInput(Value);
-}
-
-void ABasicPlayerController::LookLR(const float Value)
-{
-	AddYawInput(Value);
-}
-
 void ABasicPlayerController::Walk()
 {
 	if (auto* const ControlledPawn = Cast<ICharacterMovementInterface>(GetPawn()))
@@ -54,4 +44,10 @@ void ABasicPlayerController::Run()
 {
 	if (auto* const ControlledPawn = Cast<ICharacterMovementInterface>(GetPawn()))
 		ControlledPawn->Run();
+}
+
+void ABasicPlayerController::IgnoreInput(bool const LookInput, bool const MoveInput)
+{
+	SetIgnoreLookInput(LookInput);
+	SetIgnoreMoveInput(MoveInput);
 }

@@ -4,12 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include <../Interfaces/CharacterMovementInterface.h>
+
 #include <../Interfaces/AnimationInterface.h>
+#include <../Interfaces/CharacterStateInterface.h>
+#include <../Interfaces/CharacterMovementInterface.h>
+
 #include "BaseCharacter.generated.h"
 
-UCLASS()
-class UE4_PORTPOLIO_API ABaseCharacter : public ACharacter, public ICharacterMovementInterface, public IAnimationInterface
+UCLASS(ABSTRACT)
+class UE4_PORTPOLIO_API ABaseCharacter : public ACharacter, 
+										 public IAnimationInterface,
+										 public ICharacterStateInterface,
+										 public ICharacterMovementInterface
 {
 	GENERATED_BODY()
 
@@ -29,17 +35,28 @@ public:
 
 	virtual void PlayAnimation(class UAnimMontage* const Montage, float const PlayRate, FName const Section) override;
 
-	void ResetToIdle(UAnimMontage* const Montage, bool const bInterrupted);
+	UFUNCTION()
+		void ResetToIdle(UAnimMontage* const Montage, bool const bInterrupted);
 
 private:
 	UFUNCTION(BlueprintCallable)
-		void CustomCrouch();
+		void CustomCrouch() { Crouch(); }
 	UFUNCTION(BlueprintCallable)
-		void CustomUncrouch();
+		void CustomUncrouch() { UnCrouch(); }
 
 private:
-	virtual void Walk() override;
-	virtual void Run() override;
+#pragma region CharacterStateInterface
+	// TODO: IT MAKES ERROR "E1455" override
+	/*virtual ECharacterState GetCharacterState() override { return CharacterState; }
+	virtual void SetCharacterState(ECharacterState const StateType) override { CharacterState = StateType; }*/
+#pragma endregion
+
+#pragma region CharacterMovementInterface
+	virtual void Walk() override { GetCharacterMovement()->MaxWalkSpeed = walkSpeed; }
+	virtual void Run() override { GetCharacterMovement()->MaxWalkSpeed = runSpeed; }
+#pragma endregion
+
+	void Die();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -58,4 +75,6 @@ private:
 	float DefaultCapsuleRadius = 35.0f;
 
 	float CrouchCapsuleHalfHeight = 65.0f;
+
+	ECharacterState CharacterState = ECharacterState::IDLE;
 };
