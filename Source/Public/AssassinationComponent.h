@@ -46,19 +46,13 @@ private:
 		void Assassinate();
 
 private:
-	void TraceForward();
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+		bool TraceForward();
 		
 private:
-	/*UPROPERTY()
-		TArray<struct FAssassinationData> AssassinationArray;*/
 	UPROPERTY(EditAnywhere, category = "DataTable", meta = (AllowPrivateAccess = "true"))
 		class UDataTable* AssassinateDataTable;
 	TMap<EAssassinationType, FAssassinateData> DataMap;
-
-	/*UPROPERTY(EditAnywhere, category = "Animation", meta = (AllowPrivateAccess))
-		class UAnimMontage* Actor;
-	UPROPERTY(EditAnywhere, category = "Animation", meta = (AllowPrivateAccess))
-		class UAnimMontage* Actee;*/
 
 	class UArrowComponent* ForwardArrow;
 

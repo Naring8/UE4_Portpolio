@@ -5,14 +5,12 @@
 #include <GameFramework/Character.h>
 #include <Components/ArrowComponent.h>
 
-
 UAssassinationComponent::UAssassinationComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
 	ForwardArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("CenterForward"));
 }
-
 
 void UAssassinationComponent::BeginPlay()
 {
@@ -40,13 +38,10 @@ void UAssassinationComponent::BeginPlay()
 	}
 }
 
-
 void UAssassinationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (auto const& OwnerCharacter = Cast<ACharacter>(GetOwner()))
-		TraceForward();
 }
 
 #include "../Interfaces/AnimationInterface.h"
@@ -75,7 +70,7 @@ void UAssassinationComponent::Assassinate()
 
 #include <Kismet/KismetSystemLibrary.h>
 #include <Kismet/KismetMathLibrary.h>
-void UAssassinationComponent::TraceForward()
+bool UAssassinationComponent::TraceForward()
 {
 #pragma region TraceArrow
 	FVector const Start = ForwardArrow->GetComponentLocation() + GetOwner()->GetActorLocation();
@@ -83,17 +78,20 @@ void UAssassinationComponent::TraceForward()
 		(TraceDistance * 
 			GetOwner()->GetActorForwardVector());
 
-	UKismetSystemLibrary::LineTraceSingle
+	if (UKismetSystemLibrary::LineTraceSingle
 	(
 		this,
 		Start,
 		End,
-		UEngineTypes::ConvertToTraceType(AssassinableCharacter), // Can killable TraceChannel Collision
+		UEngineTypes::ConvertToTraceType(AssassinableCharacter), // Killable Object TraceChannel Collision
 		false,
 		{ GetOwner() },
 		EDrawDebugTrace::ForOneFrame,
 		HitResult,
 		true
-	);
+	))
+		return true;
+	else
+		return false;
 #pragma endregion
 }
