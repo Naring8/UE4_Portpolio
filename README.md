@@ -87,3 +87,12 @@ So I choose the 3rd method to reduce error
 - Assassination Component
 	- make easy to use Animation Montage by using DataTable (easy to ReadWrite in Blueprint)
 	- Use DataTable to sort (Assassin, Assassinated) Animation etc.
+
+25.03.17
+- Assassination Component
+	- Set `void TraceForward` to `bool TraceForward` to set UI visibility & call at blueprint
+- Interfaces 
+	- CharacterMovement, CharacterStateInterface
+		- Inherit BaseCharacter
+	- ControllerInterface
+		- Inherit BaseController (`void IgnoreInput`)
