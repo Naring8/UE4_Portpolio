@@ -96,3 +96,10 @@ So I choose the 3rd method to reduce error
 		- Inherit BaseCharacter
 	- ControllerInterface
 		- Inherit BaseController (`void IgnoreInput`)
+
+25.03.18
+- Interfaces
+	- CharacterStateIterface
+		- It had `C3668` Error (I missed `virtual` keyword in `CharacterStateInterface.h` file)
+	- ControllerInterface
+		- Add Switch Camera code `SwitchCamera`
