@@ -86,7 +86,7 @@ void ABaseCharacter::PlayAnimation(UAnimMontage* const Montage, float const Play
 		PlayerController->IgnoreInput(true, true);
 
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
-		OwnerAnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::ResetToIdle);
+		OwnerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &ThisClass::ResetToIdle);
 
 	PlayAnimMontage(Montage, PlayRate, Section);
 }
@@ -94,33 +94,37 @@ void ABaseCharacter::PlayAnimation(UAnimMontage* const Montage, float const Play
 void ABaseCharacter::ResetToIdle(UAnimMontage* const Montage, bool const bInterrupted)
 {
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
-		if (OwnerAnimInstance->OnMontageEnded.IsBound())
-			OwnerAnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::ResetToIdle);
+		OwnerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &ThisClass::ResetToIdle);
+
+	if (CharacterState == ECharacterState::DEAD)
+	{
+		Die();
+		return;
+	}
+
+	if (auto const& PlayerController = Cast<IControllerInterface>(GetController()))
+		PlayerController->SwitchCamera(this);
 
 	GetController()->ResetIgnoreInputFlags();
 
-	/*if (GetCharacterMovement()->IsCrouching())
-		GetCharacterMovement()->UnCrouch();*/
+	if (GetCharacterMovement()->IsCrouching())
+		GetCharacterMovement()->UnCrouch();
 }
 
 void ABaseCharacter::Die()
 {
-	if (CharacterState == ECharacterState::DEAD) return; // 이미 사망한 상태라면 중복 실행 방지
+	//if (CharacterState == ECharacterState::DEAD) return; // 이미 사망한 상태라면 중복 실행 방지
 
-	CharacterState = ECharacterState::DEAD;
+	//CharacterState = ECharacterState::DEAD;
 
-	// 애니메이션 정지
+	// Stop Animation
 	GetMesh()->bPauseAnims = true;
 
-	// 이동 불가능하게 설정
+	// Disable Movement
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
 
-	// 입력 비활성화
-	if(auto const& PlayerController = Cast<APlayerController>(GetController()))
+	// Disable Input
+	if (auto const& PlayerController = Cast<APlayerController>(GetController()))
 		PlayerController->DisableInput(PlayerController);
-
-	// 물리 시뮬레이션 활성화 (옵션)
-	GetMesh()->SetSimulatePhysics(true);
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

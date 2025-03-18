@@ -4,7 +4,7 @@
 #include "UObject/Interface.h"
 #include "CharacterStateInterface.generated.h"
 
-UENUM(BlueprintType)
+UENUM()
 enum class ECharacterState : uint8
 {
 	IDLE,
@@ -22,6 +22,6 @@ class UE4_PORTPOLIO_API ICharacterStateInterface
 	GENERATED_BODY()
 
 public:
-	ECharacterState GetCharacterState() PURE_VIRTUAL(ICharacterStateInterface::GetCharacterState, return ECharacterState::IDLE;)
-	void SetCharacterState(ECharacterState const StateType) PURE_VIRTUAL(ICharacterStateInterface::SetCharacterState)
+	virtual ECharacterState GetCharacterState() PURE_VIRTUAL(ICharacterStateInterface::GetCharacterState, return ECharacterState::IDLE;)
+	virtual void SetCharacterState(ECharacterState const StateType) PURE_VIRTUAL(ICharacterStateInterface::SetCharacterState)
 };

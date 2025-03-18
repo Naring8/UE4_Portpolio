@@ -46,9 +46,8 @@ private:
 
 private:
 #pragma region CharacterStateInterface
-	// TODO: IT MAKES ERROR "E1455" override
-	/*virtual ECharacterState GetCharacterState() override { return CharacterState; }
-	virtual void SetCharacterState(ECharacterState const StateType) override { CharacterState = StateType; }*/
+	virtual ECharacterState GetCharacterState() override { return CharacterState; }
+	virtual void SetCharacterState(ECharacterState const StateType) override { CharacterState = StateType; }
 #pragma endregion
 
 #pragma region CharacterMovementInterface
