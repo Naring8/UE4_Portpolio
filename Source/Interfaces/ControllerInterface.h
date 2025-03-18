@@ -16,4 +16,5 @@ class UE4_PORTPOLIO_API IControllerInterface
 
 public:
 	virtual void IgnoreInput(bool const LookInput, bool const MoveInput) PURE_VIRTUAL(IControllerInterface::IgnoreInput)
+	virtual void SwitchCamera(class AActor* const ViewTarget, const float DelayTime = 1.0f) PURE_VIRTUAL(IControllerInterface::SwitchCamera)
 };

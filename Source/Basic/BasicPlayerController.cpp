@@ -51,3 +51,8 @@ void ABasicPlayerController::IgnoreInput(bool const LookInput, bool const MoveIn
 	SetIgnoreLookInput(LookInput);
 	SetIgnoreMoveInput(MoveInput);
 }
+
+void ABasicPlayerController::SwitchCamera(AActor* const ViewTarget, const float DelayTime)
+{
+	SetViewTargetWithBlend(ViewTarget, DelayTime);
+}

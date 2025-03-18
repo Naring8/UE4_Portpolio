@@ -45,25 +45,30 @@ void UAssassinationComponent::TickComponent(float DeltaTime, ELevelTick TickType
 }
 
 #include "../Interfaces/AnimationInterface.h"
+#include "../Interfaces/CharacterStateInterface.h"
+#include "../Interfaces/ControllerInterface.h"
+#include "Kismet/GameplayStatics.h"
 void UAssassinationComponent::Assassinate()
 {
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Assassinate!"));
-
 	if (DataMap.Contains(EAssassinationType::Assassin) && DataMap.Contains(EAssassinationType::Assassinated))
 	{
-		FAssassinateData const* Actor = DataMap.Find(EAssassinationType::Assassin);
-		FAssassinateData const* Actee = DataMap.Find(EAssassinationType::Assassinated);
+		FAssassinateData const* Player = DataMap.Find(EAssassinationType::Assassin);
+		FAssassinateData const* Enemy = DataMap.Find(EAssassinationType::Assassinated);
 
 		if (HitResult.bBlockingHit && HitResult.GetActor() != nullptr)
 		{
-			// typedef UStaticMeshComponent MeshType;	// typedef 도 지역의 영향을 받는다
+			if (auto const& PlayerController = Cast<IControllerInterface>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
+				PlayerController->SwitchCamera(HitResult.GetActor(), 0.5f);
 
-			if (auto* const Owner = Cast<IAnimationInterface>(GetOwner()))
-				Owner->PlayAnimation(Actor->Montage, Actor->PlayRate, Actor->Section);
+			// Player Code
+			if (auto const& Owner = Cast<IAnimationInterface>(GetOwner()))
+				Owner->PlayAnimation(Player->Montage, Player->PlayRate, Player->Section);
 
-			if (auto* const Victum = Cast<IAnimationInterface>(HitResult.GetActor()))
-				Victum->PlayAnimation(Actee->Montage, Actee->PlayRate, Actee->Section);
+			// Enemy Code
+			if (auto const& VictumState = Cast<ICharacterStateInterface>(HitResult.GetActor()))
+				VictumState->SetCharacterState(ECharacterState::DEAD);
+			if (auto const& Victum = Cast<IAnimationInterface>(HitResult.GetActor()))
+				Victum->PlayAnimation(Enemy->Montage, Enemy->PlayRate, Enemy->Section);
 		}
 	}
 }
@@ -86,11 +91,17 @@ bool UAssassinationComponent::TraceForward()
 		UEngineTypes::ConvertToTraceType(AssassinableCharacter), // Killable Object TraceChannel Collision
 		false,
 		{ GetOwner() },
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		HitResult,
 		true
 	))
+	{
+		if (auto const& VictumState = Cast<ICharacterStateInterface>(HitResult.GetActor()))
+			if (VictumState->GetCharacterState() == ECharacterState::DEAD)
+				return false;
+
 		return true;
+	}
 	else
 		return false;
 #pragma endregion
