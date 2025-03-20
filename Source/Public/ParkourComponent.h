@@ -77,7 +77,6 @@ private:
 #pragma region Support Code
 	FParkourData const* FindData(EParkourType const Type) const;
 	void SupplementForAction(float divVal = 400.0f);
-	void IgnoreInput(bool LookInput, bool MoveInput);
 #pragma endregion
 
 private:

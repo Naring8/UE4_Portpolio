@@ -198,7 +198,7 @@ void UParkourComponent::BracedDrop()
 		PlayMontage();
 }
 
-
+#include "../Interfaces/AnimationInterface.h"
 void UParkourComponent::PlayMontage()
 {
 	if (PlayableParkourData)
@@ -208,14 +208,18 @@ void UParkourComponent::PlayMontage()
 			if (auto const& CustomCharacterMovement = Cast<ICharacterMovementInterface>(OwnerCharacter->GetMesh()->GetAnimInstance()))
 				CustomCharacterMovement->WallRunUp(false);
 
-			OwnerCharacter->GetCharacterMovement()->StopMovementImmediately();
 			OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-			IgnoreInput(true, false);
+
+			if (auto const& OwnerCharacterAnimInstance = Cast<IAnimationInterface>(OwnerCharacter))
+				OwnerCharacterAnimInstance->PlayAnimation(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
+
+			// OwnerCharacter->GetCharacterMovement()->StopMovementImmediately();
+			// IgnoreInput(true, false);
 
 			if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
 				OwnerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &ThisClass::ResetVariables);
 
-			OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
+			// OwnerCharacter->PlayAnimMontage(PlayableParkourData->Montage, PlayableParkourData->PlayRate, PlayableParkourData->Section);
 		}
 	}
 }
@@ -230,6 +234,7 @@ void UParkourComponent::ResetVariables(UAnimMontage* const Montage, bool const b
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
 		if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+
 			if (OwnerAnimInstance->OnMontageBlendingOut.IsBound())
 				OwnerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UParkourComponent::ResetVariables);
 
@@ -300,13 +305,4 @@ void UParkourComponent::SupplementForAction(float divVal)
 	}
 	else
 		PlayMontage();
-}
-
-void UParkourComponent::IgnoreInput(bool LookInput, bool MoveInput)
-{
-	if (auto const& OwnerCharacter = Cast<ACharacter>(Owner))
-	{
-		OwnerCharacter->GetController()->SetIgnoreLookInput(LookInput);
-		OwnerCharacter->GetController()->SetIgnoreMoveInput(MoveInput);
-	}
 }
