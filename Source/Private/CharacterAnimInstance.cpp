@@ -1,6 +1,5 @@
 ﻿#include "CharacterAnimInstance.h"
-#include <GameFramework/Character.h>
-#include <GameFramework/CharacterMovementComponent.h>
+
 
 void UCharacterAnimInstance::NativeUpdateAnimation(float const DeltaSeconds)
 {

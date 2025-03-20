@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include <Animation/AnimInstance.h>
+#include <GameFramework/Character.h>
 #include <GameFramework/CharacterMovementComponent.h>
 #include "CharacterMovementInterface.generated.h"
 

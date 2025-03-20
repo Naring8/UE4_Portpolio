@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include <Animation/AnimInstance.h>
 #include <../Interfaces/CharacterMovementInterface.h>
 #include "CharacterAnimInstance.generated.h"
 
