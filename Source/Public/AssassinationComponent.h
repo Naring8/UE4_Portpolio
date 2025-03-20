@@ -42,13 +42,17 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+		void TraceForward();
+
 	UFUNCTION(BlueprintCallable)
 		void Assassinate();
 
-private:
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-		bool TraceForward();
-		
+	UFUNCTION()
+		void SetIdle(UAnimMontage* const Montage, bool const bInterrupted);
+	UFUNCTION()
+		void DeadAfterAnimation(UAnimMontage* const Montage, bool const bInterrupted);
+
 private:
 	UPROPERTY(EditAnywhere, category = "DataTable", meta = (AllowPrivateAccess = "true"))
 		class UDataTable* AssassinateDataTable;
@@ -56,8 +60,7 @@ private:
 
 	class UArrowComponent* ForwardArrow;
 
-	UPROPERTY(EditAnywhere)
-		float TraceDistance = 300.0f;
+	float TraceDistance = 180.0f;
 
 private:
 	AActor* HitObstacle = nullptr;
@@ -69,4 +72,8 @@ private:
 
 	FVector WallLocation = FVector::ZeroVector;
 	FVector WallNormal = FVector::ZeroVector;
+
+	bool bCanTrace = true;
+	FAssassinateData const* Player;
+	FAssassinateData const* Enemy;
 };

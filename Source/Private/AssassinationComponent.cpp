@@ -35,6 +35,9 @@ void UAssassinationComponent::BeginPlay()
 				DataMap.Add(EAssassinationType(Key), Value);
 			}
 		}
+
+		Player = DataMap.Find(EAssassinationType::Assassin);
+		Enemy = DataMap.Find(EAssassinationType::Assassinated);
 	}
 }
 
@@ -42,48 +45,22 @@ void UAssassinationComponent::TickComponent(float DeltaTime, ELevelTick TickType
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-}
+	if (bCanTrace)
+		TraceForward();
 
-#include "../Interfaces/AnimationInterface.h"
-#include "../Interfaces/CharacterStateInterface.h"
-#include "../Interfaces/ControllerInterface.h"
-#include "Kismet/GameplayStatics.h"
-void UAssassinationComponent::Assassinate()
-{
-	if (DataMap.Contains(EAssassinationType::Assassin) && DataMap.Contains(EAssassinationType::Assassinated))
-	{
-		FAssassinateData const* Player = DataMap.Find(EAssassinationType::Assassin);
-		FAssassinateData const* Enemy = DataMap.Find(EAssassinationType::Assassinated);
-
-		if (HitResult.bBlockingHit && HitResult.GetActor() != nullptr)
-		{
-			if (auto const& PlayerController = Cast<IControllerInterface>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
-				PlayerController->SwitchCamera(HitResult.GetActor(), 0.5f);
-
-			// Player Code
-			if (auto const& Owner = Cast<IAnimationInterface>(GetOwner()))
-				Owner->PlayAnimation(Player->Montage, Player->PlayRate, Player->Section);
-
-			// Enemy Code
-			if (auto const& VictumState = Cast<ICharacterStateInterface>(HitResult.GetActor()))
-				VictumState->SetCharacterState(ECharacterState::DEAD);
-			if (auto const& Victum = Cast<IAnimationInterface>(HitResult.GetActor()))
-				Victum->PlayAnimation(Enemy->Montage, Enemy->PlayRate, Enemy->Section);
-		}
-	}
 }
 
 #include <Kismet/KismetSystemLibrary.h>
 #include <Kismet/KismetMathLibrary.h>
-bool UAssassinationComponent::TraceForward()
+void UAssassinationComponent::TraceForward()
 {
 #pragma region TraceArrow
 	FVector const Start = ForwardArrow->GetComponentLocation() + GetOwner()->GetActorLocation();
-	FVector const End = Start + 
-		(TraceDistance * 
+	FVector const End = Start +
+		(TraceDistance *
 			GetOwner()->GetActorForwardVector());
 
-	if (UKismetSystemLibrary::LineTraceSingle
+	UKismetSystemLibrary::LineTraceSingle
 	(
 		this,
 		Start,
@@ -94,15 +71,60 @@ bool UAssassinationComponent::TraceForward()
 		EDrawDebugTrace::None,
 		HitResult,
 		true
-	))
-	{
-		if (auto const& VictumState = Cast<ICharacterStateInterface>(HitResult.GetActor()))
-			if (VictumState->GetCharacterState() == ECharacterState::DEAD)
-				return false;
-
-		return true;
-	}
-	else
-		return false;
+	);
 #pragma endregion
+}
+
+#include "../Interfaces/AnimationInterface.h"
+#include "../Interfaces/CharacterStateInterface.h"
+#include "../Interfaces/ControllerInterface.h"
+#include "CharacterAnimInstance.h"
+#include "Kismet/GameplayStatics.h"
+void UAssassinationComponent::Assassinate()
+{
+	if (DataMap.Contains(EAssassinationType::Assassin) && DataMap.Contains(EAssassinationType::Assassinated))
+	{
+		if (HitResult.bBlockingHit && HitResult.GetActor() != nullptr)
+		{
+			bCanTrace = false;
+
+			if (auto const& PlayerController = Cast<IControllerInterface>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
+				PlayerController->SwitchCamera(HitResult.GetActor(), 0.5f);
+
+			GetOwner()->SetActorLocation(HitResult.GetActor()->GetActorLocation() - (HitResult.GetActor()->GetActorForwardVector() * TraceDistance));
+			GetOwner()->SetActorRotation(HitResult.GetActor()->GetActorRotation());
+
+#pragma region PlayerAnimation
+			if(auto const& OwnerCharacter = Cast<ACharacter>(GetOwner()))
+				if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
+					OwnerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &ThisClass::SetIdle);
+
+			if (auto const& Owner = Cast<IAnimationInterface>(GetOwner()))
+				Owner->PlayAnimation(Player->Montage, Player->PlayRate, Player->Section);
+#pragma endregion
+
+
+#pragma region EnemyAnimation
+			if (auto const& EnemyCharacter = Cast<ACharacter>(HitResult.GetActor()))
+				if (auto const& EnemyAnimInstance = Cast<UCharacterAnimInstance>(EnemyCharacter->GetMesh()->GetAnimInstance()))
+					EnemyAnimInstance->OnMontageBlendingOut.AddDynamic(this, &ThisClass::DeadAfterAnimation);
+			if (auto const& Victum = Cast<IAnimationInterface>(HitResult.GetActor()))
+				Victum->PlayAnimation(Enemy->Montage, Enemy->PlayRate, Enemy->Section);
+#pragma endregion
+		}
+	}
+}
+
+void UAssassinationComponent::SetIdle(UAnimMontage* const Montage, bool const bInterrupted)
+{
+	bCanTrace = true;
+
+	if (auto const& PlayerController = Cast<IControllerInterface>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
+		PlayerController->SwitchCamera(GetOwner(), 0.5f);
+}
+
+void UAssassinationComponent::DeadAfterAnimation(UAnimMontage* const Montage, bool const bInterrupted)
+{
+	if (auto const& EnemyCharacter = Cast<ICharacterStateInterface>(HitResult.GetActor()))
+		EnemyCharacter->CharacterDead();
 }
