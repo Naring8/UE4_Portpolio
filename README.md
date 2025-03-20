@@ -103,3 +103,15 @@ So I choose the 3rd method to reduce error
 		- It had `C3668` Error (I missed `virtual` keyword in `CharacterStateInterface.h` file)
 	- ControllerInterface
 		- Add Switch Camera code `SwitchCamera`
+
+25.03.20
+- ParkourComponent
+	- Move Play Animation(self) to Character's Play Animation Code
+- Assassination Component
+	- Add Dynamic Delegate (when Montage BlendingOut) to set Character state more appropriately
+- CharacterStateInterface
+	- Add `CharacterDead` Func to make character die directly
+- BaseCharacter
+	- Add `DisableInput` when Montage Playing
+- Weapon (Schedule)
+	- Add UserWidget to pickup
