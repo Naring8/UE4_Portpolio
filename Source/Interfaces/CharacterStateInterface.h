@@ -24,4 +24,6 @@ class UE4_PORTPOLIO_API ICharacterStateInterface
 public:
 	virtual ECharacterState GetCharacterState() PURE_VIRTUAL(ICharacterStateInterface::GetCharacterState, return ECharacterState::IDLE;)
 	virtual void SetCharacterState(ECharacterState const StateType) PURE_VIRTUAL(ICharacterStateInterface::SetCharacterState)
+
+	virtual void CharacterDead() PURE_VIRTUAL(ICharacterStateInterface::CharacterDead)
 };

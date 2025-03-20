@@ -83,7 +83,10 @@ void ABaseCharacter::PlayAnimation(UAnimMontage* const Montage, float const Play
 
 	GetCharacterMovement()->StopMovementImmediately();
 	if (auto const& PlayerController = Cast<IControllerInterface>(GetController()))
-		PlayerController->IgnoreInput(true, true);
+	{
+		PlayerController->IgnoreInput(true, false);
+		DisableInput(GetController()->CastToPlayerController());
+	}
 
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
 		OwnerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &ThisClass::ResetToIdle);
@@ -96,26 +99,22 @@ void ABaseCharacter::ResetToIdle(UAnimMontage* const Montage, bool const bInterr
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
 		OwnerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &ThisClass::ResetToIdle);
 
-	if (CharacterState == ECharacterState::DEAD)
-	{
-		Die();
-		return;
-	}
+	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
-	if (auto const& PlayerController = Cast<IControllerInterface>(GetController()))
-		PlayerController->SwitchCamera(this);
+	/*if (auto const& PlayerController = Cast<IControllerInterface>(GetController()))
+		PlayerController->SwitchCamera(GetWorld().Getplayer);*/
 
+	EnableInput(GetController()->CastToPlayerController());
 	GetController()->ResetIgnoreInputFlags();
 
 	if (GetCharacterMovement()->IsCrouching())
 		GetCharacterMovement()->UnCrouch();
 }
 
-void ABaseCharacter::Die()
+void ABaseCharacter::CharacterDead()
 {
-	//if (CharacterState == ECharacterState::DEAD) return; // 이미 사망한 상태라면 중복 실행 방지
-
-	//CharacterState = ECharacterState::DEAD;
+	if (CharacterState == ECharacterState::DEAD) return;
+	CharacterState = ECharacterState::DEAD;
 
 	// Stop Animation
 	GetMesh()->bPauseAnims = true;
@@ -123,6 +122,8 @@ void ABaseCharacter::Die()
 	// Disable Movement
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// Disable Input
 	if (auto const& PlayerController = Cast<APlayerController>(GetController()))

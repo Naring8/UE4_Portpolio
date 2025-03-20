@@ -48,14 +48,14 @@ private:
 #pragma region CharacterStateInterface
 	virtual ECharacterState GetCharacterState() override { return CharacterState; }
 	virtual void SetCharacterState(ECharacterState const StateType) override { CharacterState = StateType; }
+
+	virtual void CharacterDead() override;
 #pragma endregion
 
 #pragma region CharacterMovementInterface
 	virtual void Walk() override { GetCharacterMovement()->MaxWalkSpeed = walkSpeed; }
 	virtual void Run() override { GetCharacterMovement()->MaxWalkSpeed = runSpeed; }
 #pragma endregion
-
-	void Die();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
