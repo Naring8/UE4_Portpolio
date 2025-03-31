@@ -115,3 +115,8 @@ So I choose the 3rd method to reduce error
 	- Add `DisableInput` when Montage Playing
 - Weapon (Schedule)
 	- Add UserWidget to pickup
+
+25.03.24 ~ 03.31
+- Animation & Sound Assets
+- Weapon
+	- with StaticMesh & Capsule Component (Blueprint + C++)
