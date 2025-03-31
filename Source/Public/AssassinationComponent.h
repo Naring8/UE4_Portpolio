@@ -48,6 +48,8 @@ private:
 	UFUNCTION(BlueprintCallable)
 		void Assassinate();
 
+	void SetCharacterWidget(class AActor* const Actor, bool const Detect);
+
 	UFUNCTION()
 		void SetIdle(UAnimMontage* const Montage, bool const bInterrupted);
 	UFUNCTION()

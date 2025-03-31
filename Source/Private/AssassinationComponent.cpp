@@ -45,9 +45,13 @@ void UAssassinationComponent::TickComponent(float DeltaTime, ELevelTick TickType
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (bCanTrace)
-		TraceForward();
-
+	if (auto const& OwnerCharacter = Cast<ACharacter>(GetOwner()))
+	{
+		if(bCanTrace && OwnerCharacter->bIsCrouched)
+			TraceForward();
+		else
+			SetCharacterWidget(HitResult.GetActor(), false);
+	}
 }
 
 #include <Kismet/KismetSystemLibrary.h>
@@ -60,18 +64,22 @@ void UAssassinationComponent::TraceForward()
 		(TraceDistance *
 			GetOwner()->GetActorForwardVector());
 
-	UKismetSystemLibrary::LineTraceSingle
+	if(UKismetSystemLibrary::LineTraceSingle
 	(
 		this,
 		Start,
 		End,
-		UEngineTypes::ConvertToTraceType(AssassinableCharacter), // Killable Object TraceChannel Collision
+		UEngineTypes::ConvertToTraceType(AssassinableCharacter), // Killable Object TraceChannel Collision (Editor)
 		false,
 		{ GetOwner() },
 		EDrawDebugTrace::None,
 		HitResult,
 		true
-	);
+	))
+		SetCharacterWidget(HitResult.GetActor(), true);
+	else
+		SetCharacterWidget(HitResult.GetActor(), false);
+
 #pragma endregion
 }
 
@@ -87,6 +95,7 @@ void UAssassinationComponent::Assassinate()
 		if (HitResult.bBlockingHit && HitResult.GetActor() != nullptr)
 		{
 			bCanTrace = false;
+			SetCharacterWidget(HitResult.GetActor(), false);
 
 			if (auto const& PlayerController = Cast<IControllerInterface>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
 				PlayerController->SwitchCamera(HitResult.GetActor(), 0.5f);
@@ -113,6 +122,12 @@ void UAssassinationComponent::Assassinate()
 #pragma endregion
 		}
 	}
+}
+
+void UAssassinationComponent::SetCharacterWidget(AActor* const Actor, bool const Detect)
+{
+	if (auto const& Character = Cast<ICharacterStateInterface>(Actor))
+		Character->CharacterDetected(Detect);
 }
 
 void UAssassinationComponent::SetIdle(UAnimMontage* const Montage, bool const bInterrupted)
