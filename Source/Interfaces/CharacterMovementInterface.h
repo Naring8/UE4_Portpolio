@@ -27,4 +27,7 @@ public:
 	virtual void CustomJump(bool IsJump) PURE_VIRTUAL(ICharacterMovementInterface::CustomJump)
 
 	virtual void WallRunUp(bool WallUp) PURE_VIRTUAL(ICharacterMovementInterface::WallRunUp)
+
+	virtual void ChangeWeapon() PURE_VIRTUAL(ICharacterMovementInterface::ChangeWeapon)
+	virtual void BaseAttack() PURE_VIRTUAL(ICharacterMovementInterface::BaseAttack)
 };

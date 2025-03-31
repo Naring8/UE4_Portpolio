@@ -16,4 +16,5 @@ class UE4_PORTPOLIO_API IAnimationInterface
 
 public:
 	virtual void PlayAnimation(class UAnimMontage* const Montage, float const PlayRate, FName const Section) PURE_VIRTUAL(IAnimationInterface::PlayAnimation)
+	virtual void PlayContinuousAnimation(class UAnimMontage* const Montage, float const PlayRate, FName const Section) PURE_VIRTUAL(IAnimationInterface::PlayContinuousAnimation)
 };

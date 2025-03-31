@@ -25,6 +25,9 @@ private:
 	virtual void Walk() override;
 	virtual void Run() override;
 
+	virtual void ChangeWeapon() override;
+	virtual void BaseAttack() override;
+
 	virtual void IgnoreInput(bool const LookInput, bool const MoveInput) override;
 
 	virtual void SwitchCamera(class AActor* const ViewTarget, const float DelayTime = 1.0f) override;

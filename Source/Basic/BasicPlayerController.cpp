@@ -11,6 +11,9 @@ void ABasicPlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("Run", EInputEvent::IE_Released, this, &ThisClass::Walk);
 	InputComponent->BindAction("Run", EInputEvent::IE_Pressed, this, &ThisClass::Run);
+
+	InputComponent->BindAction("Weapons", EInputEvent::IE_Pressed, this, &ThisClass::ChangeWeapon);
+	InputComponent->BindAction("BaseAttack", EInputEvent::IE_Pressed, this, &ThisClass::BaseAttack);
 }
 
 // BindAxis Movement
@@ -44,6 +47,18 @@ void ABasicPlayerController::Run()
 {
 	if (auto* const ControlledPawn = Cast<ICharacterMovementInterface>(GetPawn()))
 		ControlledPawn->Run();
+}
+
+void ABasicPlayerController::ChangeWeapon()
+{
+	if (auto* const ControlledPawn = Cast<ICharacterMovementInterface>(GetPawn()))
+		ControlledPawn->ChangeWeapon();
+}
+
+void ABasicPlayerController::BaseAttack()
+{
+	if (auto* const ControlledPawn = Cast<ICharacterMovementInterface>(GetPawn()))
+		ControlledPawn->BaseAttack();
 }
 
 void ABasicPlayerController::IgnoreInput(bool const LookInput, bool const MoveInput)

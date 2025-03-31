@@ -50,11 +50,16 @@ private:
 	virtual void SetCharacterState(ECharacterState const StateType) override { CharacterState = StateType; }
 
 	virtual void CharacterDead() override;
+	virtual void CharacterDetected(bool const IsDetected) override { bIsDetected = IsDetected; }
+	
 #pragma endregion
 
 #pragma region CharacterMovementInterface
 	virtual void Walk() override { GetCharacterMovement()->MaxWalkSpeed = walkSpeed; }
 	virtual void Run() override { GetCharacterMovement()->MaxWalkSpeed = runSpeed; }
+
+	virtual void ChangeWeapon() override;
+	virtual void BaseAttack() override;
 #pragma endregion
 
 private:
@@ -64,7 +69,11 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		class UCameraComponent* Camera;
 
-	TSubclassOf<class ABaseWeapon> curWeapon;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapons", meta = (AllowPrivateAccess))
+		TArray<TSubclassOf<class ABaseWeapon>> WeaponClasses;
+
+	int32 WeaponIdx = 0;
+	TArray<class ABaseWeapon*> Weapons;
 
 private:
 	float walkSpeed = 200.0f;
@@ -76,4 +85,8 @@ private:
 	float CrouchCapsuleHalfHeight = 65.0f;
 
 	ECharacterState CharacterState = ECharacterState::IDLE;
+
+private:
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess))
+		bool bIsDetected = false;
 };

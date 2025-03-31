@@ -8,6 +8,7 @@ UENUM()
 enum class ECharacterState : uint8
 {
 	IDLE,
+	ACTING,
 	DEAD
 };
 
@@ -26,4 +27,5 @@ public:
 	virtual void SetCharacterState(ECharacterState const StateType) PURE_VIRTUAL(ICharacterStateInterface::SetCharacterState)
 
 	virtual void CharacterDead() PURE_VIRTUAL(ICharacterStateInterface::CharacterDead)
+	virtual void CharacterDetected(bool const IsDetected) PURE_VIRTUAL(ICharacterStateInterface::CharacterDetected)
 };

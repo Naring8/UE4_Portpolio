@@ -3,6 +3,8 @@
 #include <GameFramework/SpringArmComponent.h>
 #include <Camera/CameraComponent.h>
 
+#include <BaseWeapon.h>
+
 // Sets default values
 ABaseCharacter::ABaseCharacter()
 {
@@ -56,6 +58,32 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+#pragma region AttachWeapons
+	FActorSpawnParameters SpawnParameters;
+
+	SpawnParameters.Owner = SpawnParameters.Instigator = this;
+
+	for (auto& WeaponClass : WeaponClasses)
+	{
+		if (!IsValid(WeaponClass))
+			continue;
+
+		auto* const SpawnedWeapon = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, SpawnParameters);
+
+		FAttachmentTransformRules const Rules(EAttachmentRule::KeepRelative, true);
+
+		SpawnedWeapon->AttachToComponent(GetMesh(), Rules, SpawnedWeapon->GetWeaponSocketName());
+
+		Weapons.Add(SpawnedWeapon);
+	}
+
+	if (Weapons.Num() > 0)
+	{
+		if(auto const& Weapon = Cast<IWeaponInterface>(Weapons[WeaponIdx]))
+			Weapon->EnableAttack();
+	}
+#pragma endregion
+
 }
 
 // Called every frame
@@ -72,14 +100,14 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+
 }
 
 #include "CharacterAnimInstance.h"
 #include "../Interfaces/ControllerInterface.h"
 void ABaseCharacter::PlayAnimation(UAnimMontage* const Montage, float const PlayRate, FName const Section)
 {
-	if (!Montage)
-		return;
+	if (!Montage) return;
 
 	GetCharacterMovement()->StopMovementImmediately();
 	if (auto const& PlayerController = Cast<IControllerInterface>(GetController()))
@@ -97,24 +125,24 @@ void ABaseCharacter::PlayAnimation(UAnimMontage* const Montage, float const Play
 void ABaseCharacter::ResetToIdle(UAnimMontage* const Montage, bool const bInterrupted)
 {
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
-		OwnerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &ThisClass::ResetToIdle);
+		if(OwnerAnimInstance->OnMontageBlendingOut.IsBound())
+			OwnerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &ThisClass::ResetToIdle);
 
-	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-
-	/*if (auto const& PlayerController = Cast<IControllerInterface>(GetController()))
-		PlayerController->SwitchCamera(GetWorld().Getplayer);*/
+	CharacterState = ECharacterState::IDLE;
 
 	EnableInput(GetController()->CastToPlayerController());
 	GetController()->ResetIgnoreInputFlags();
-
-	if (GetCharacterMovement()->IsCrouching())
-		GetCharacterMovement()->UnCrouch();
 }
 
 void ABaseCharacter::CharacterDead()
 {
 	if (CharacterState == ECharacterState::DEAD) return;
 	CharacterState = ECharacterState::DEAD;
+
+	// Set Weapon All Disabled
+	for (auto const& Weapon : Weapons)
+		if(auto const& WeaponStatus = Cast<IWeaponInterface>(Weapon))
+			WeaponStatus->DisableAttack();
 
 	// Stop Animation
 	GetMesh()->bPauseAnims = true;
@@ -128,4 +156,23 @@ void ABaseCharacter::CharacterDead()
 	// Disable Input
 	if (auto const& PlayerController = Cast<APlayerController>(GetController()))
 		PlayerController->DisableInput(PlayerController);
+}
+
+void ABaseCharacter::ChangeWeapon()
+{
+	if (Weapons.Num() > 0)
+	{
+		if (auto const& PrevWeapon = Cast<IWeaponInterface>(Weapons[WeaponIdx]))
+			PrevWeapon->DisableAttack();
+
+		++WeaponIdx %= Weapons.Num();
+
+		if (auto const& CurWeapon = Cast<IWeaponInterface>(Weapons[WeaponIdx]))
+			CurWeapon->EnableAttack();
+	}
+}
+
+void ABaseCharacter::BaseAttack()
+{
+	Weapons[WeaponIdx]->BaseAttack();
 }
