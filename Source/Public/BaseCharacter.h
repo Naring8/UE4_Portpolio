@@ -37,12 +37,11 @@ public:
 
 	UFUNCTION()
 		void ResetToIdle(UAnimMontage* const Montage, bool const bInterrupted);
-
 private:
 	UFUNCTION(BlueprintCallable)
-		void CustomCrouch() { Crouch(); }
+		void CustomCrouch();
 	UFUNCTION(BlueprintCallable)
-		void CustomUncrouch() { UnCrouch(); }
+		void CustomUncrouch();
 
 private:
 #pragma region CharacterStateInterface
@@ -60,6 +59,7 @@ private:
 
 	virtual void ChangeWeapon() override;
 	virtual void BaseAttack() override;
+	virtual void Stealth() override;
 #pragma endregion
 
 private:

@@ -124,6 +124,8 @@ void ABaseCharacter::PlayAnimation(UAnimMontage* const Montage, float const Play
 
 void ABaseCharacter::ResetToIdle(UAnimMontage* const Montage, bool const bInterrupted)
 {
+	if (bInterrupted) return;
+
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
 		if(OwnerAnimInstance->OnMontageBlendingOut.IsBound())
 			OwnerAnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &ThisClass::ResetToIdle);
@@ -132,6 +134,16 @@ void ABaseCharacter::ResetToIdle(UAnimMontage* const Montage, bool const bInterr
 
 	EnableInput(GetController()->CastToPlayerController());
 	GetController()->ResetIgnoreInputFlags();
+}
+
+void ABaseCharacter::CustomCrouch()
+{
+	Crouch();
+}
+
+void ABaseCharacter::CustomUncrouch()
+{
+	UnCrouch();
 }
 
 void ABaseCharacter::CharacterDead()
@@ -160,6 +172,8 @@ void ABaseCharacter::CharacterDead()
 
 void ABaseCharacter::ChangeWeapon()
 {
+	if (!(CharacterState == ECharacterState::IDLE)) return;
+
 	if (Weapons.Num() > 0)
 	{
 		if (auto const& PrevWeapon = Cast<IWeaponInterface>(Weapons[WeaponIdx]))
@@ -174,5 +188,13 @@ void ABaseCharacter::ChangeWeapon()
 
 void ABaseCharacter::BaseAttack()
 {
+	if (bIsCrouched) return;
+
 	Weapons[WeaponIdx]->BaseAttack();
+}
+
+void ABaseCharacter::Stealth()
+{
+	if (bIsCrouched && (CharacterState == ECharacterState::IDLE))
+		Weapons[WeaponIdx]->DoAssassinate();
 }

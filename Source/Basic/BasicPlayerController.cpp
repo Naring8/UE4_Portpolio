@@ -14,6 +14,7 @@ void ABasicPlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("Weapons", EInputEvent::IE_Pressed, this, &ThisClass::ChangeWeapon);
 	InputComponent->BindAction("BaseAttack", EInputEvent::IE_Pressed, this, &ThisClass::BaseAttack);
+	InputComponent->BindAction("Assassinate", EInputEvent::IE_Pressed, this, &ThisClass::Stealth);
 }
 
 // BindAxis Movement
@@ -59,6 +60,12 @@ void ABasicPlayerController::BaseAttack()
 {
 	if (auto* const ControlledPawn = Cast<ICharacterMovementInterface>(GetPawn()))
 		ControlledPawn->BaseAttack();
+}
+
+void ABasicPlayerController::Stealth()
+{
+	if (auto* const ControlledPawn = Cast<ICharacterMovementInterface>(GetPawn()))
+		ControlledPawn->Stealth();
 }
 
 void ABasicPlayerController::IgnoreInput(bool const LookInput, bool const MoveInput)

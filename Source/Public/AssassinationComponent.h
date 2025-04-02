@@ -41,13 +41,15 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-private:
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-		void TraceForward();
+		bool TraceForward(AActor* const BaseActor);
 
 	UFUNCTION(BlueprintCallable)
 		void Assassinate();
 
+	void SetOwnerActor(AActor* const Owner) { OwnerActor = Owner; }
+
+private:
 	void SetCharacterWidget(class AActor* const Actor, bool const Detect);
 
 	UFUNCTION()
@@ -62,15 +64,20 @@ private:
 
 	class UArrowComponent* ForwardArrow;
 
-	float TraceDistance = 180.0f;
+	UPROPERTY(EditAnywhere, category = "DataTable", meta = (AllowPrivateAccess = "true"))
+		float TraceDistance = 180.0f;
+	UPROPERTY(EditAnywhere, category = "DataTable", meta = (AllowPrivateAccess = "true"))
+		float CameraDelayTime = 0.5f;
 
 private:
+	AActor* OwnerActor = nullptr;
 	AActor* HitObstacle = nullptr;
 	FVector HitObstacleExtent = FVector::ZeroVector;
 	float HitDistance = 0;
 	float YawToFace = 0;
 
 	FHitResult HitResult;
+	AActor* prevActor = nullptr;
 
 	FVector WallLocation = FVector::ZeroVector;
 	FVector WallNormal = FVector::ZeroVector;

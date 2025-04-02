@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include <../Basic/CustomStruct.h>
 #include <../Interfaces/WeaponInterface.h>
+
+#include <AssassinationComponent.h>
 #include "BaseWeapon.generated.h"
 
 UCLASS(Abstract)
@@ -22,6 +24,9 @@ public:
 
 	FName GetWeaponSocketName() { return WeaponSocket; }
 	void BaseAttack();
+
+	UFUNCTION(BlueprintCallable)
+		void DoAssassinate();
 
 private:
 	void SetWidgetVisibility(ESlateVisibility const Visibility) {}
@@ -52,6 +57,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 		class UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(VisibleAnywhere)
+		class UAssassinationComponent* Assassination;
 #pragma endregion
 
 private:
@@ -73,5 +81,6 @@ private:
 		class UUserWidget* PickUpWidget;*/
 
 private:
-	class ACharacter*  OwnerCharacter;
+	class ACharacter* OwnerCharacter;
+	bool bCanAssassinate = false;
 };

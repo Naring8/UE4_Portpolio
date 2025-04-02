@@ -14,9 +14,10 @@ ABaseWeapon::ABaseWeapon()
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	StaticMesh->SetupAttachment(Capsule);
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); 
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	//if mesh get collision, this make Owner's Movement odd
 
+	Assassination = CreateDefaultSubobject<UAssassinationComponent>("Assassination");
 }
 
 #include "CharacterAnimInstance.h"
@@ -27,6 +28,7 @@ void ABaseWeapon::BeginPlay()
 
 	DisableAttack();
 	OwnerCharacter = Cast<ACharacter>(GetOwner());
+	Assassination->SetOwnerActor(GetOwner());
 
 	if (auto const& OwnerAnimInstance = Cast<UCharacterAnimInstance>(OwnerCharacter->GetMesh()->GetAnimInstance()))
 	{
@@ -35,12 +37,19 @@ void ABaseWeapon::BeginPlay()
 	}
 }
 
+#include <../Interfaces/CharacterStateInterface.h>
 void ABaseWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bAttackEnabled == false) return;
+
+	if(auto const& OwnerState = Cast<ICharacterStateInterface>(OwnerCharacter))
+		if((OwnerCharacter->bIsCrouched) && (OwnerState->GetCharacterState() == ECharacterState::IDLE))
+			if (Assassination->TraceForward(OwnerCharacter))
+				bCanAssassinate = true;
 }
-#include <../Interfaces/CharacterStateInterface.h>
+
 void ABaseWeapon::BaseAttack()
 {
 	if (bAttackEnabled == false) return; // Do not carrying weapon
@@ -57,6 +66,12 @@ void ABaseWeapon::BaseAttack()
 
 	if (!bAttackTransisted)
 		PlayWeaponAssetMontage();
+}
+
+void ABaseWeapon::DoAssassinate()
+{
+	if (bCanAssassinate)
+		Assassination->Assassinate();
 }
 
 #include <../Interfaces/ControllerInterface.h>

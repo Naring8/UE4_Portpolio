@@ -27,6 +27,7 @@ private:
 
 	virtual void ChangeWeapon() override;
 	virtual void BaseAttack() override;
+	virtual void Stealth() override;
 
 	virtual void IgnoreInput(bool const LookInput, bool const MoveInput) override;
 

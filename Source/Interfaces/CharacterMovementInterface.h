@@ -30,4 +30,5 @@ public:
 
 	virtual void ChangeWeapon() PURE_VIRTUAL(ICharacterMovementInterface::ChangeWeapon)
 	virtual void BaseAttack() PURE_VIRTUAL(ICharacterMovementInterface::BaseAttack)
+	virtual void Stealth() PURE_VIRTUAL(ICharacterMovementInterface::Stealth)
 };
