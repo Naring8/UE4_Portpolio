@@ -120,3 +120,12 @@ So I choose the 3rd method to reduce error
 - Animation & Sound Assets
 - Weapon
 	- with StaticMesh & Capsule Component (Blueprint + C++)
+
+2025.04.01~04.02
+- Weapon
+	- Attach `AssassinationComponent`
+- Assassination
+	- Set `return bool type` and Get OwnerPlayer in "`TraceForward` Function"
+	- Set Camera Delay Time in Blueprint Editor
+- Sound
+	- NeckBreaking & dagger Bleeding Sound Effect
